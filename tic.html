@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic Tac Toe — Online & Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --card:#0f1320; --muted:#95a4c7; --accent:#6ee7ff; --accent2:#ffd166;
+    --good:#34d399; --bad:#f87171; --white:#ffffff; --line:#2a3a66;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--white);
+    font-family:Poppins,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:18px;
+  }
+  .app{width:100%; max-width:560px}
+  .card{
+    background:linear-gradient(180deg, #0f1320, #0b1020);
+    border:1px solid var(--line); border-radius:24px; padding:20px;
+    box-shadow:0 18px 50px rgba(0,0,0,.6);
+  }
+  h1{margin:0 0 12px; font-weight:800; letter-spacing:.3px}
+  .sub{color:var(--muted); font-size:.92rem; margin-bottom:16px}
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--line); background:linear-gradient(180deg,#131a31,#0c1427);
+    color:var(--white); padding:12px 16px; border-radius:16px; font-weight:700; cursor:pointer;
+    transition:transform .08s ease, border-color .2s ease; flex:1; text-align:center
+  }
+  .btn:hover{transform:translateY(-1px); border-color:#3b518a}
+  .btn.accent{color:var(--accent)}
+  .btn.good{color:var(--good)}
+  .btn.bad{color:var(--bad)}
+  .input{
+    width:100%; background:#0a0f1f; color:var(--white); border:1px solid var(--line);
+    padding:12px 14px; border-radius:14px; outline:none; font-weight:600;
+  }
+  .muted{color:var(--muted); font-size:.86rem}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+  .badge{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#0a0f1f; color:var(--muted); font-size:.85rem}
+  .tag{padding:6px 10px; border-radius:999px; background:#0a0f1f; border:1px solid var(--line); color:var(--accent); font-weight:800; font-size:.85rem}
+
+  /* Board */
+  .board{margin-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .cell{
+    width:100%; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+    background: #111528;
+    border:2px solid #2a3a66; border-radius:18px; font-size:2.6rem; font-weight:900;
+    cursor:pointer; user-select:none; transition:transform .06s ease, border-color .2s ease, box-shadow .2s ease;
+    color:#fff; text-shadow:0 0 12px rgba(255,255,255,.18);
+    box-shadow:inset 0 0 0 1px #1a274a, 0 10px 18px rgba(0,0,0,.45);
+  }
+  .cell:hover{transform:translateY(-1px); border-color:#4563a8}
+
+  .countdown{margin-top:10px; padding:12px; background:#0e142a; border:1px dashed #2d3c6b; border-radius:16px; text-align:center}
+  .hidden{display:none !important}
+
+  /* VS Animation */
+  .vs-wrap{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#05070cdd; backdrop-filter:blur(6px); z-index:30}
+  .vs-card{
+    border:1px solid #2b3d63; background:linear-gradient(180deg,#111827,#0c1423); border-radius:28px; padding:26px 20px; width:min(92vw,520px); text-align:center;
+    box-shadow:0 16px 50px rgba(0,0,0,.7); animation:pop .25s ease;
+  }
+  @keyframes pop{from{transform:scale(.96); opacity:0}to{transform:scale(1); opacity:1}}
+  .vs-names{font-size:1.4rem; font-weight:800}
+  .vs{font-size:2.2rem; color:var(--accent2); margin:10px 0 6px; font-weight:900; text-shadow:0 0 18px #ffd16655}
+  .loading-bars{display:flex; gap:8px; justify-content:center; margin-top:10px}
+  .bar{width:10px; height:10px; border-radius:6px; background:#2a3b5e; animation:blink 1.2s infinite}
+  .bar:nth-child(2){animation-delay:.15s}.bar:nth-child(3){animation-delay:.3s}.bar:nth-child(4){animation-delay:.45s}.bar:nth-child(5){animation-delay:.6s}
+  @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+
+  /* Notice modal (custom alert) */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#05070cdd; backdrop-filter:blur(4px); z-index:40}
+  .modal .panel{background:linear-gradient(180deg,#121a2b,#0f1727); border:1px solid #2b3d63; border-radius:20px; padding:18px; width:min(92vw,480px); box-shadow:0 10px 34px rgba(0,0,0,.7)}
+  .modal h3{margin:0 0 6px}
+  .modal p{margin:0 0 10px; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- MENU -->
+  <div class="card" id="screen-menu">
+    <h1>🎮 Tic Tac Toe</h1>
+    <div class="sub">Play vs Bot or find a Stranger instantly.</div>
+
+    <input class="input" id="username" placeholder="Your username (required)" maxlength="18">
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn good" id="btn-bot">Play with Bot</button>
+      <button class="btn accent" id="btn-stranger">Play with Stranger</button>
+    </div>
+
+    <div class="countdown hidden" id="mm-box">
+      <div><b>⌛ Matchmaking</b></div>
+      <div style="margin-top:6px">Searching opponent… <b id="mm-timer">1</b> / 120 sec</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn bad" id="btn-cancel-mm">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="card hidden" id="screen-game">
+    <div class="topbar">
+      <span class="badge">Mode: <b id="modeLabel" style="margin-left:6px;color:var(--accent)"></b></span>
+      <span class="tag" id="turnTag">Turn: —</span>
+    </div>
+
+    <div class="row" style="gap:10px; justify-content:space-between">
+      <span class="badge">🧑 You: <b id="youName" style="color:#fff;margin-left:6px">—</b> <span id="youSym" style="margin-left:6px;color:#fff"></span></span>
+      <span class="badge">🎮 Rival: <b id="opName" style="color:#fff;margin-left:6px">—</b> <span id="opSym" style="margin-left:6px;color:#fff"></span></span>
+    </div>
+
+    <div class="board" id="board"></div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn bad" id="btn-exit">Exit</button>
+      <button class="btn" id="btn-restart">Restart (Bot)</button>
+    </div>
+    <div class="muted" style="margin-top:8px">Tie → auto-restart • Win → game ends</div>
+  </div>
+</div>
+
+<!-- VS Animation -->
+<div class="vs-wrap" id="vs">
+  <div class="vs-card">
+    <div class="badge" style="justify-content:center">Preparing Match</div>
+    <div class="vs-names" id="vs-p1" style="margin-top:8px;color:#8fd1ff"></div>
+    <div class="vs">VS</div>
+    <div class="vs-names" id="vs-p2" style="color:#ffd2a2"></div>
+    <div class="loading-bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+  </div>
+</div>
+
+<!-- Notice Modal (Custom alert) -->
+<div class="modal" id="notice">
+  <div class="panel">
+    <h3>📢 System Notice</h3>
+    <p id="notice-text">Message</p>
+    <div class="row">
+      <button class="btn good" id="notice-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  /* ========= Firebase (Modular CDN) ========= */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getDatabase, ref, onValue, get, set, update, remove, runTransaction, off, push
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // Using your config exactly as provided
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjPo0dtX5LWat8oM-T1hmLJM9wKZ52ZYA",
+    authDomain: "quiz-71b99.firebaseapp.com",
+    databaseURL: "https://quiz-71b99-default-rtdb.firebaseio.com",
+    projectId: "quiz-71b99",
+    storageBucket: "quiz-71b99.firebasestorage.app",
+    messagingSenderId: "812208462350",
+    appId: "1:812208462350:web:1a2fe0d5bbad7ad9e1ba5f"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  /* ========= Helpers / UI ========= */
+  const $ = (id)=>document.getElementById(id);
+  const show = (el)=>el.classList.remove('hidden');
+  const hide = (el)=>el.classList.add('hidden');
+
+  function notice(msg, cb){
+    $("notice-text").textContent = msg;
+    $("notice").style.display = "flex";
+    const handler = ()=>{ $("notice").style.display="none"; $("notice-ok").removeEventListener('click', handler); if(cb) cb(); };
+    $("notice-ok").addEventListener('click', handler);
+  }
+
+  function vsShow(p1, p2){
+    $("vs-p1").textContent = p1;
+    $("vs-p2").textContent = p2;
+    $("vs").style.display = "flex";
+    return new Promise(res=> setTimeout(()=>{ $("vs").style.display="none"; res(); }, 2400));
+  }
+
+  /* ========= Game State ========= */
+  const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  let board = Array(9).fill("");
+  let mode = null; // 'bot' | 'stranger'
+  let myName="", oppName="", mySymbol="", oppSymbol="", myTurn=false;
+
+  // MP variables
+  let roomId=null, roomRef=null, mmInterval=null, mmCount=1, listener=null, myRole=null;
+
+  /* ========= Render Board ========= */
+  const boardEl = $("board");
+  function drawBoard(){
+    boardEl.innerHTML="";
+    for(let i=0;i<9;i++){
+      const cell=document.createElement('button');
+      cell.className='cell'; cell.id='cell'+i; cell.textContent=board[i];
+      cell.addEventListener('click', ()=>onCell(i));
+      boardEl.appendChild(cell);
+    }
+  }
+  function setNamesUI(){
+    $("youName").textContent = myName||"—";
+    $("opName").textContent = oppName||"—";
+    $("youSym").textContent = mySymbol?`(${mySymbol})`:"";
+    $("opSym").textContent = oppSymbol?`(${oppSymbol})`:"";
+  }
+  function setTurnTag(){ $("turnTag").textContent = "Turn: " + (myTurn ? "You" : (oppName||"Opponent")); }
+  function evalBoard(b){
+    for(const [a,b1,c] of wins){ if(b[a] && b[a]===b[b1] && b[a]===b[c]) return {status:"win", winner:b[a]}; }
+    if(b.every(x=>x)) return {status:"tie"};
+    return {status:"cont"};
+  }
+  function resetLocalBoard(){ board = Array(9).fill(""); drawBoard(); }
+
+  /* ========= Bot Mode (ALL FUNCTIONS) ========= */
+  $("btn-bot").onclick = ()=>{
+    myName = ($("username").value||"").trim();
+    if(!myName) return notice("Please enter your username first.");
+    startBot();
+  };
+
+  function startBot(){
+    mode='bot'; $("modeLabel").textContent="Bot";
+    mySymbol='X'; oppSymbol='O'; oppName='Bot'; myTurn=true;
+    setNamesUI(); resetLocalBoard(); setTurnTag();
+    hide($("screen-menu")); show($("screen-game")); show($("btn-restart"));
+  }
+
+  $("btn-restart").onclick = ()=> { if(mode==='bot'){ resetLocalBoard(); myTurn=true; setTurnTag(); } };
+
+  function onCell(i){
+    if(mode==='bot'){
+      if(!myTurn || board[i]) return;
+      playAt(i,'X');
+      return;
+    }
+    if(mode==='stranger'){
+      if(!myTurn || board[i]) return;
+      mpPlayAt(i);
+    }
+  }
+
+  function playAt(i,sym){
+    if(board[i]) return;
+    board[i]=sym; drawBoard();
+    const res = evalBoard(board);
+    if(res.status==="win"){
+      const winnerName = sym==='X'? myName : oppName;
+      notice(`${winnerName} Wins! 🎉`, ()=> backToMenu());
+      return;
+    }
+    if(res.status==="tie"){
+      notice("Match Tie! Restarting…");
+      setTimeout(()=>{ resetLocalBoard(); myTurn = (mySymbol==='X'); setTurnTag(); }, 600);
+      return;
+    }
+    // Continue flow: after I (X) move, bot moves; after bot (O) moves, it's my turn.
+    myTurn = (sym==='O');
+    setTurnTag();
+    if(!myTurn) setTimeout(botMove, 350);
+  }
+
+  function botMove(){
+    // 1) Try to win
+    let i = findLine('O'); if(i!==-1) return playAt(i,'O');
+    // 2) Block X
+    i = findLine('X'); if(i!==-1) return playAt(i,'O');
+    // 3) Center > Corners > Sides
+    if(!board[4]) return playAt(4,'O');
+    const corners=[0,2,6,8].filter(k=>!board[k]); if(corners.length) return playAt(corners[Math.floor(Math.random()*corners.length)],'O');
+    const sides=[1,3,5,7].filter(k=>!board[k]); if(sides.length) return playAt(sides[Math.floor(Math.random()*sides.length)],'O');
+  }
+  function findLine(sym){
+    for(const [a,b,c] of wins){
+      const line=[board[a],board[b],board[c]];
+      if(line.filter(x=>x===sym).length===2 && line.includes("")) return [a,b,c][line.indexOf("")];
+    }
+    return -1;
+  }
+
+  /* ========= Stranger Mode (ALL FUNCTIONS) ========= */
+  $("btn-stranger").onclick = ()=>{
+    myName = ($("username").value||"").trim();
+    if(!myName) return notice("Please enter your username first.");
+    startMatchmaking();
+  };
+  $("btn-cancel-mm").onclick = ()=> cancelMatchmaking(false);
+
+  function startMatchmaking(){
+    mode='stranger'; $("modeLabel").textContent="Stranger";
+    $("mm-box").classList.remove('hidden');
+    mmCount = 1; $("mm-timer").textContent = mmCount;
+    if(mmInterval) clearInterval(mmInterval);
+    mmInterval = setInterval(()=>{
+      mmCount++; $("mm-timer").textContent = mmCount;
+      if(mmCount>120){ clearInterval(mmInterval); cancelMatchmaking(true); }
+    },1000);
+
+    // Try to join an existing waiting room atomically; else create one
+    joinExistingOrCreate().catch(err=>{
+      notice("Matchmaking error. Please try again.");
+      console.error(err);
+      cancelMatchmaking(false);
+    });
+  }
+
+  async function joinExistingOrCreate(){
+    // 1) Look for a waiting room (status='waiting')
+    const listSnap = await get(ref(db, 'matchmaking'));
+    let joined = false;
+    if(listSnap.exists()){
+      const rooms = listSnap.val();
+      for(const [rid, r] of Object.entries(rooms)){
+        if(r && r.status==='waiting' && !r.player2Name && r.player1Name !== myName){
+          // Try transaction to join
+          const txRef = ref(db, `matchmaking/${rid}`);
+          const res = await runTransaction(txRef, (cur)=>{
+            if(!cur) return cur;
+            if(cur.status==='waiting' && !cur.player2Name){
+              cur.player2Name = myName;
+              cur.status='playing';
+              cur.startedAt = Date.now();
+              return cur;
+            }
+            return cur;
+          });
+          if(res.committed && res.snapshot && res.snapshot.val().status==='playing'){
+            roomId = rid; roomRef = ref(db, `matchmaking/${roomId}`);
+            myRole='player2'; mySymbol='O'; oppSymbol='X'; oppName=res.snapshot.val().player1Name;
+            setNamesUI();
+            clearInterval(mmInterval); $("mm-box").classList.add('hidden');
+            await vsShow(oppName, myName);
+            startMultiplayer();
+            joined = true;
+            break;
+          }
+        }
+      }
+    }
+    if(joined) return;
+
+    // 2) Create a new waiting room (I'm player1)
+    const newRef = push(ref(db, 'matchmaking'));
+    roomId = newRef.key; roomRef = newRef;
+    myRole='player1'; mySymbol='X'; oppSymbol='O'; oppName='';
+    await set(roomRef, {
+      player1Name: myName,
+      status:'waiting',
+      board: Array(9).fill(""),
+      turn:'X',
+      createdAt: Date.now()
+    });
+    // Listen for player2 joining
+    listener = onValue(roomRef, async (snap)=>{
+      const d = snap.val(); if(!d) return;
+      if(d.status==='playing' && d.player2Name){
+        oppName = d.player2Name; setNamesUI();
+        clearInterval(mmInterval); $("mm-box").classList.add('hidden');
+
+        // Properly unsubscribe the temporary listener (minimal change)
+        if (typeof listener === 'function') { try { listener(); } catch(e){} }
+        try { off(roomRef); } catch(e){}
+        listener = null;
+
+        await vsShow(myName, oppName);
+        startMultiplayer();
+      }
+    });
+  }
+
+  async function startMultiplayer(){
+    hide($("screen-menu")); show($("screen-game"));
+    $("btn-restart").classList.add('hidden'); // disable manual restart online
+    // Initialize board/turn and main listener
+    const s = await get(roomRef); const d = s.val()||{};
+    board = d.board || Array(9).fill("");
+    drawBoard();
+    myTurn = (d.turn===mySymbol) && d.status==='playing'; setTurnTag();
+    if(d.player1Name && d.player2Name){
+      oppName = myRole==='player1' ? d.player2Name : d.player1Name; setNamesUI();
+    }
+    // Live updates
+    onValue(roomRef, (snap)=>{
+      const g = snap.val()||{};
+      // If the host deleted/ended, go back
+      if(!g || g.status==='ended'){
+        if(g && g.winner){
+          const name = g.winner===mySymbol ? myName : oppName;
+          notice(`Game Over! 🏁 Winner: ${name}`, ()=> backToMenu());
+        }else{
+          notice("Game ended.", ()=> backToMenu());
+        }
+        return;
+      }
+
+      board = g.board || Array(9).fill("");
+      drawBoard();
+      if(g.player1Name && g.player2Name){
+        oppName = myRole==='player1' ? g.player2Name : g.player1Name; setNamesUI();
+      }
+      myTurn = (g.turn===mySymbol) && g.status==='playing'; setTurnTag();
+
+      // Evaluate results
+      const res = evalBoard(board);
+      if(res.status==='win' && g.status==='playing'){
+        // Mark ended once
+        update(roomRef, { status:'ended', winner: res.winner, endedAt: Date.now() }).catch(()=>{});
+      } else if(res.status==='tie' && g.status==='playing'){
+        // Auto reset for new round
+        update(roomRef, { board:Array(9).fill(""), turn:'X', lastResetAt: Date.now() }).catch(()=>{});
+        notice("Match Tie! Restarting…");
+      }
+    });
+  }
+
+  /* ========= FIXED: single atomic transaction so turn never gets stuck ========= */
+  async function mpPlayAt(i){
+    if (!myTurn || board[i]) return;
+
+    // Optimistic local feel: block double-clicks immediately
+    myTurn = false;
+    setTurnTag();
+
+    const txRef = ref(db, `matchmaking/${roomId}`);
+    const result = await runTransaction(txRef, (cur)=>{
+      if(!cur) return cur;
+      if(cur.status !== 'playing') return cur;
+      if(cur.turn !== mySymbol) return cur;               // only act if it's truly my turn
+      if(!cur.board) cur.board = Array(9).fill("");
+      if(cur.board[i]) return cur;                        // cell already taken
+
+      // Apply move + flip turn together
+      const nextTurn = (mySymbol === 'X' ? 'O' : 'X');
+      const newBoard = cur.board.slice();
+      newBoard[i] = mySymbol;
+
+      return {
+        ...cur,
+        board: newBoard,
+        turn: nextTurn,
+        lastMoveAt: Date.now()
+      };
+    });
+
+    // If it didn't commit (e.g., race), restore local turn view
+    if (!result.committed) {
+      // Let the realtime listener correct the UI shortly; but show it's not your turn if rejected
+      // (No extra UI needed; onValue will sync state.)
+      return;
+    }
+  }
+
+  async function cancelMatchmaking(fromTimeout){
+    if(mmInterval) clearInterval(mmInterval);
+    $("mm-box").classList.add('hidden');
+    if(listener && roomRef) { try { listener(); } catch(e){} try { off(roomRef); } catch(e){} }
+
+    // If I created the room and it's still waiting, remove it
+    if(roomRef){
+      const s = await get(roomRef);
+      if(s.exists()){
+        const d = s.val();
+        if(d.status==='waiting' && d.player1Name===myName){
+          await remove(roomRef).catch(()=>{});
+        }
+      }
+    }
+    roomId=null; roomRef=null; myRole=null; mySymbol=""; oppSymbol=""; oppName="";
+    if(fromTimeout) notice("No Player Online, Timeout. Please try again later.");
+  }
+
+  /* ========= Exit / Cleanup ========= */
+  $("btn-exit").onclick = ()=> backToMenu();
+
+  function backToMenu(){
+    if(listener && roomRef) { try { listener(); } catch(e){} try { off(roomRef); } catch(e){} }
+    board = Array(9).fill("");
+    mode=null; roomId=null; roomRef=null; myRole=null; mySymbol=""; oppSymbol=""; oppName=""; myTurn=false;
+    show($("screen-menu")); hide($("screen-game"));
+    $("mm-box").classList.add('hidden');
+    drawBoard();
+    $("modeLabel").textContent="—"; setTurnTag(); setNamesUI();
+  }
+
+  // Initial paint
+  drawBoard();
+  $("modeLabel").textContent="—"; setTurnTag(); setNamesUI();
+</script>
+</body>
+</html>

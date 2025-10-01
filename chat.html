@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URA Public Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-image: url('chat.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+    }
+
+    .message {
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 10px;
+      position: relative;
+      background: #1e1e1e;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Special message styling */
+    .special-message {
+      border-left: 5px solid;
+      animation: specialGlow 1.5s infinite alternate;
+    }
+    .flagged-message {
+        background-color: #3b2a2a;
+        border-color: #ff6347;
+    }
+    .moderator-message {
+        background-color: #1a2a3a;
+        border-color: #87ceeb;
+    }
+    .supermod-message {
+        background-color: #3a3a1a;
+        border-color: #ffd700;
+    }
+    .secret-message {
+        background-color: #4b0082;
+        border-color: #ff1493;
+    }
+
+    @keyframes specialGlow {
+        from { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+        to { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+    }
+    
+    .message:hover {
+        background: #2a2a2a;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .name {
+      font-weight: 700;
+      color: #00bcd4;
+    }
+
+    .super-mod-name {
+      color: #ff4d4f !important;
+    }
+
+    .time {
+      font-size: 0.75em;
+      color: #9e9e9e;
+    }
+
+    .message-content {
+      font-size: 1em;
+      line-height: 1.4;
+      word-wrap: break-word;
+      margin-right: 30px; 
+    }
+
+    .url-button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #121212;
+      background: #00bcd4;
+      transition: background 0.3s ease;
+    }
+
+    .url-button.download {
+      background: #4caf50;
+    }
+    .url-button.watch {
+      background: #ff0000;
+    }
+    .url-button.visit {
+      background: #2196f3;
+    }
+    
+    .url-button:hover {
+      opacity: 0.8;
+    }
+    
+    .inputBox {
+      display: flex;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.85);
+      border-top: 1px solid #333;
+    }
+
+    #chatInput {
+      flex: 1;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1em;
+      background: #333;
+      color: #e0e0e0;
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    #chatInput::placeholder {
+        color: #b0b0b0;
+    }
+
+    #sendBtn {
+      background: #00bcd4;
+      color: #121212;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      margin-left: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.1s ease;
+    }
+
+    #sendBtn:hover {
+      background: #00a4b8;
+    }
+    
+    #sendBtn:active {
+        transform: scale(0.98);
+    }
+
+    .mod-tools {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      cursor: pointer;
+      color: #9e9e9e;
+      font-size: 1.2em;
+    }
+    
+    .mod-tools:hover {
+        color: #e0e0e0;
+    }
+
+    .mod-menu {
+      background: #2a2a2a;
+      padding: 5px;
+      border-radius: 8px;
+      position: absolute;
+      top: 30px;
+      right: 0;
+      z-index: 10;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .mod-menu button {
+      background: none;
+      border: none;
+      color: #e0e0e0;
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .mod-menu button:hover {
+      background: #333;
+    }
+
+    .typing {
+      padding: 10px 20px;
+      color: #00bcd4;
+      font-style: italic;
+      font-size: 0.9em;
+      background: #1e1e1e;
+      border-top: 1px solid #333;
+    }
+    .typing::after {
+        content: '';
+        animation: typing-dots 1s infinite;
+    }
+    @keyframes typing-dots {
+        0% { content: '.'; }
+        33% { content: '..'; }
+        66% { content: '...'; }
+    }
+
+    #customAlert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffc107;
+      color: black;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #000;
+      z-index: 9999;
+      display: none;
+      animation: fadeInOut 4s forwards;
+    }
+    
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+        10% { opacity: 1; transform: translateX(-50%) scale(1); }
+        90% { opacity: 1; transform: translateX(-50%) scale(1); }
+        100% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+    }
+  </style>
+</head>
+<body>
+<div id="customAlert">System Notice 📢</div>
+<div id="messages"></div>
+<div class="typing" id="typingBox" style="display:none;">Someone is typing...</div>
+<div class="inputBox">
+  <input type="text" id="chatInput" placeholder="Type a message..." />
+  <button id="sendBtn">Send</button>
+</div>
+<audio id="chatSound" src="chat.mp3" preload="auto"></audio>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getDatabase, ref, set, onChildAdded, push, update, get, child, remove, onValue, onChildRemoved } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTlF72am1EULMJLNa79JdTXg900ToVhNo",
+  authDomain: "public-chat-c172d.firebaseapp.com",
+  databaseURL: "https://public-chat-c172d-default-rtdb.firebaseio.com",
+  projectId: "public-chat-c172d",
+  storageBucket: "public-chat-c172d.appspot.com",
+  messagingSenderId: "715808792938",
+  appId: "1:715808792938:web:b1fd50cb6bf387d30ec513"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const messagesRef = ref(db, 'messages');
+const chatUsersRef = ref(db, 'chatUsers');
+const blockedRef = ref(db, 'blockedUsers');
+const typingRef = ref(db, 'typing');
+
+const username = localStorage.getItem("username");
+if (!username) {
+  showAlert("Please login first.");
+  setTimeout(() => location.href = "index.html", 2000);
+}
+
+let displayName = "";
+let role = "user";
+
+function showAlert(msg) {
+  const alert = document.getElementById("customAlert");
+  alert.innerText = `System Notice 📢: ${msg}`;
+  alert.style.display = "block";
+  setTimeout(() => alert.style.display = "none", 4000);
+}
+
+get(child(ref(db), `chatUsers/${username}`)).then(snap => {
+  if (snap.exists()) {
+    const data = snap.val();
+    displayName = data.chatName;
+    role = data.role || "user";
+    initChat();
+  } else {
+    let inputBox = document.createElement("div");
+    inputBox.innerHTML = `
+      <div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000a;z-index:9999;display:flex;align-items:center;justify-content:center;'>
+        <div style='background:#222;padding:20px;border-radius:10px;color:white;'>
+          <label>Enter Your Chat Name:</label><br>
+          <input type='text' id='customNameInput' style='width:100%;padding:10px;margin:10px 0;' />
+          <button id='submitNameBtn' style='padding:10px 20px;'>Submit</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(inputBox);
+    document.getElementById("submitNameBtn").onclick = () => {
+      const custom = document.getElementById("customNameInput").value.trim();
+      if (!custom) return showAlert("Chat name is required");
+
+      let cleaned = custom.replace(/#226|#225|#224|#227/g, "");
+      let roleSet = "user";
+      let emoji = "👤";
+
+      if (custom.startsWith("#226")) {
+        roleSet = "supermod";
+        emoji = "👑";
+      } else if (custom.startsWith("#225")) {
+        roleSet = "moderator";
+        emoji = "📢";
+      } else if (custom.startsWith("#224")) {
+        roleSet = "flagged";
+        emoji = "👤";
+      } else if (custom.startsWith("#227")) {
+        roleSet = "secret";
+        emoji = "👤";
+      }
+
+      displayName = emoji + cleaned;
+      role = roleSet;
+
+      set(child(chatUsersRef, username), {
+        chatName: displayName,
+        role: roleSet
+      }).then(() => {
+        inputBox.remove();
+        initChat();
+      });
+    }
+  }
+});
+
+function initChat() {
+  const chatInput = document.getElementById("chatInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const typingBox = document.getElementById("typingBox");
+  const chatSound = document.getElementById("chatSound");
+
+  onChildAdded(messagesRef, (snap) => {
+    addMessageToDOM(snap.key, snap.val());
+    if (snap.val().username !== username) chatSound.play();
+  });
+
+  onChildRemoved(messagesRef, (snap) => {
+    const target = document.querySelector(`[data-key='${snap.key}']`);
+    if (target) target.remove();
+  });
+
+  chatInput.addEventListener("input", () => {
+    set(child(typingRef, username), { name: displayName });
+    setTimeout(() => remove(child(typingRef, username)), 2000);
+  });
+
+  onValue(typingRef, (snap) => {
+    const val = snap.val();
+    if (val) {
+      const usersTyping = Object.values(val).filter(u => u.name !== displayName);
+      typingBox.style.display = usersTyping.length ? "block" : "none";
+      typingBox.innerText = usersTyping.length ? `✍️ ${usersTyping[0].name} is typing...` : "";
+    } else {
+      typingBox.style.display = "none";
+    }
+  });
+
+  sendBtn.onclick = () => {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    get(child(blockedRef, username)).then(snap => {
+      if (snap.exists() && Date.now() < snap.val().until) {
+        showAlert("⛔️ You are blocked for 30 minutes.");
+        return;
+      }
+      
+      const messageData = {
+        name: displayName,
+        text,
+        time: Date.now(),
+        username,
+        role,
+      };
+      
+      push(messagesRef, messageData);
+      chatInput.value = "";
+      typingBox.style.display = "none";
+    });
+  };
+}
+
+// New function to process and format URLs
+function formatMessageContent(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  let matches = text.match(urlRegex);
+  
+  if (!matches) {
+    return text; // No URL found, return original text
+  }
+
+  let newContent = text;
+  matches.forEach(url => {
+    let buttonText;
+    let buttonClass;
+
+    if (url.includes('mediafire.com')) {
+      buttonText = 'Download Now';
+      buttonClass = 'download';
+    } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      buttonText = 'Watch Now';
+      buttonClass = 'watch';
+    } else {
+      buttonText = 'Visit Now';
+      buttonClass = 'visit';
+    }
+
+    const buttonHtml = `<a href="${url}" target="_blank" class="url-button ${buttonClass}">${buttonText}</a>`;
+    newContent = newContent.replace(url, buttonHtml);
+  });
+
+  return newContent;
+}
+
+
+function addMessageToDOM(key, msg) {
+  const messagesBox = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "message";
+  div.setAttribute("data-key", key);
+
+  let displayedName = msg.name;
+  let isSpecial = false;
+
+  if (msg.role === "secret") {
+      div.classList.add("special-message", "secret-message");
+      displayedName = "URA-System";
+      isSpecial = true;
+  } else if (msg.role === "supermod") {
+      div.classList.add("special-message", "supermod-message");
+      isSpecial = true;
+  } else if (msg.role === "moderator") {
+      div.classList.add("special-message", "moderator-message");
+      isSpecial = true;
+  } else if (msg.role === "flagged") {
+      div.classList.add("special-message", "flagged-message");
+      isSpecial = true;
+  }
+
+  const header = document.createElement("div");
+  header.className = "message-header";
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "name";
+  if (isSpecial) {
+    nameSpan.innerText = `${displayedName}`;
+  } else {
+    nameSpan.innerText = displayedName;
+  }
+  
+  if (msg.role === "supermod") nameSpan.style.color = "#ffd700";
+  if (msg.role === "moderator") nameSpan.style.color = "#87ceeb";
+  if (msg.role === "flagged") nameSpan.style.color = "#ff6347";
+  if (msg.role === "secret") nameSpan.style.color = "#ff1493";
+
+  const timeSpan = document.createElement("span");
+  timeSpan.className = "time";
+  const date = new Date(msg.time);
+  timeSpan.innerText = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+  header.appendChild(nameSpan);
+  header.appendChild(timeSpan);
+
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "message-content";
+  // Updated line: Use innerHTML to render the formatted content
+  contentDiv.innerHTML = formatMessageContent(msg.text); 
+
+  div.appendChild(header);
+  div.appendChild(contentDiv);
+
+  const tools = document.createElement("div");
+  tools.className = "mod-tools";
+  tools.innerText = "⋮";
+
+  const menu = document.createElement("div");
+  menu.className = "mod-menu";
+
+  const report = document.createElement("button");
+  report.innerText = "Report";
+  report.onclick = () => {
+    const abusiveWords = [
+      "fuck", "idiot", "scam", "hack", "crack", "data", "fraud",
+      "madarchod", "bhosdi", "chutiya", "nalle", "kutte", "bakchod"
+    ];
+    const msgText = msg.text.toLowerCase();
+    const isAbusive = abusiveWords.some(word => msgText.includes(word));
+
+    if (isAbusive) {
+      remove(child(ref(db, 'messages'), key));
+      const blockUntil = Date.now() + 2 * 60 * 1000;
+      set(child(blockedRef, msg.username), { until: blockUntil });
+      showAlert("✅ Thank you! Report successfully completed,URA-Firing Squad Block This Toxic User.");
+    } else {
+      showAlert("✅ Thank you for reporting, This Message Under Review.");
+    }
+    menu.style.display = "none";
+  };
+  menu.appendChild(report);
+
+  if ((role === "moderator" || role === "supermod") || msg.username === username) {
+    const del = document.createElement("button");
+    del.innerText = "Delete";
+    del.onclick = () => {
+      remove(child(ref(db, 'messages'), key));
+      menu.style.display = "none";
+    };
+    menu.appendChild(del);
+  }
+
+  if (role === "moderator" || role === "supermod") {
+    const block = document.createElement("button");
+    block.innerText = "Block";
+    block.onclick = () => {
+      const until = Date.now() + 1800000;
+      set(child(blockedRef, msg.username), { until }).then(() => {
+        remove(child(ref(db, 'messages'), key));
+        showAlert("User blocked for 30 mins.");
+      });
+      menu.style.display = "none";
+    };
+    menu.appendChild(block);
+  }
+
+  tools.appendChild(menu);
+  tools.onclick = () => {
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  };
+  div.appendChild(tools);
+
+  messagesBox.appendChild(div);
+  messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+</script>
+</body>
+</html>

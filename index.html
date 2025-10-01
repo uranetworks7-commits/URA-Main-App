@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Loader</title>
+<style>
+html, body {
+  margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:sans-serif;
+}
+
+/* Main iframe */
+#iframeApp {
+  width:100%; height:100%; border:none; position:fixed; top:0; left:0; z-index:1;
+}
+
+/* Toast */
+#banToast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e74c3c;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  z-index: 100000;
+  pointer-events:none; /* prevent blocking iframe */
+}
+#banToast.show {opacity:1;}
+</style>
+</head>
+<body>
+
+<iframe id="iframeApp" src="log.html"></iframe>
+
+<div id="banToast">⚠️ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ɪꜱ ʙᴀɴɴᴇᴅ </div>
+
+<script type="module">
+  import { initBanCheck } from "./js/ban.js";
+
+  function startBanCheck() {
+    const username = localStorage.getItem("username");
+    if (username && username.trim() !== "") {
+      initBanCheck({
+        toastElement: document.getElementById("banToast")
+      }); // start monitoring with toast element
+    } else {
+      setTimeout(startBanCheck, 1000); // retry until user logs in
+    }
+  }
+
+  startBanCheck();
+</script>
+
+</body>
+</html>

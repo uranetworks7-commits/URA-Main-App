@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>About URA App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('about.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 22px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      background: #ff4081;
+      border: none;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 15px #ff4081;
+      transition: 0.3s ease;
+      width: 95%;
+      max-width: 500px;
+    }
+
+    button:hover {
+      background: #c2185b;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90%;
+      max-width: 500px;
+      padding: 25px;
+      background: #2b2b3c;
+      color: #00ffe1;
+      font-size: 18px;
+      border-radius: 20px;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 25px #00ffe1;
+      z-index: 9999;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .popup button {
+      margin-top: 20px;
+      font-size: 16px;
+      padding: 12px 25px;
+      background: #00bcd4;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00bcd4;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9) translate(-50%, -50%); }
+      to { opacity: 1; transform: scale(1) translate(-50%, -50%); }
+    }
+  </style>
+</head>
+<body>
+
+<h2>📖 About URA App</h2>
+
+<button onclick="showPopup(1)">Account Creation</button>
+<button onclick="showPopup(2)">Account Deletion</button>
+<button onclick="showPopup(3)">Important Notice</button>
+<button onclick="showPopup(4)">Win Redeem Code</button>
+<button onclick="showPopup(5)">App Credits</button>
+<button onclick="showPopup(6)">FAQ Tips</button>
+<button onclick="showPopup(7)">What's New</button> <!-- ✅ New Button -->
+
+<div class="popup" id="popupBox">
+  <div id="popupText"></div>
+  <button onclick="hidePopup()">OK</button>
+</div>
+
+<audio id="beep" src="beep.mp3"></audio>
+
+<script>
+  function showPopup(num) {
+    const beep = document.getElementById('beep');
+    const popup = document.getElementById('popupBox');
+    const popupText = document.getElementById('popupText');
+    let text = "";
+
+    switch (num) {
+      case 1:
+        text = "<b>Create your free account</b> by entering your Email ID and Username. Once approved, you’ll get full access to the app.";
+        break;
+      case 2:
+        text = "To delete your account, send the message: <b>Delete My Account / Main.ppl.Uranetworks I agree and didn’t understand</b> to URA AI. OK";
+        break;
+      case 3:
+        text = "⚠️ This app is highly advanced. If you try to create fake accounts or enter false details, we will take strict action.<br><b>Developed by URA-Networks Team ✅</b>";
+        break;
+      case 4:
+        text = "🎁 You Can Win Redeem Code Easily! Just Click On <b>Free Gifts</b> Button. Stay Updated With Live News.";
+        break;
+      case 5:
+        text = "Dear User, this app is owned by <b>VLF-TeC</b> and <b>Terminal.io</b> (Uttar Pradesh and Rajasthan Co Group)";
+        break;
+      case 6:
+        text = "📘 <b>Boost Your Winning Chances with Simple Tips!</b><br>Stay updated, report glitches, and use all features. Our team manually increases your winning % accordingly.<br><br>— Best regards";
+        break;
+      case 7:
+        text = "<b>URA-APP Features</b><br>• Public Chat<br>• New Gifts System (Handle Multiple Users)<br>• Utkarsh Pro Ai<br>• New Style And UI<br>• Smooth Control<br>• Modified Security System With SV 10 Max Version / New Game / Music / Protection/ More ";
+        break;
+    }
+
+    popupText.innerHTML = text;
+    popup.style.display = 'block';
+    beep.play();
+  }
+
+  function hidePopup() {
+    document.getElementById('popupBox').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

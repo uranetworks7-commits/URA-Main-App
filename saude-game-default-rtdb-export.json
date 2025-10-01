@@ -1,0 +1,175 @@
+{
+  "matches": {
+    "-OY6dZZRaN4MHXKZh8Tx": {
+      "players": {
+        "1755696220568": {
+          "choice": "",
+          "name": "Ua"
+        },
+        "1755696639284": {
+          "choice": "paper",
+          "name": "Iokb"
+        }
+      },
+      "status": "playing"
+    },
+    "-OY6d_QrTzvT6AGIwMZC": {
+      "players": {
+        "1755696224260": {
+          "choice": "",
+          "name": "Ran"
+        },
+        "1755696679577": {
+          "choice": "",
+          "name": "Ggh"
+        }
+      },
+      "status": "playing"
+    },
+    "-OY6g-kwyqgO4JbHTsXQ": {
+      "players": {
+        "1755696875561": {
+          "choice": "paper"
+        }
+      }
+    },
+    "-OY6rwdKWtWlxHUqoEk5": {
+      "lastResult": {
+        "scores": {
+          "me": 4,
+          "opp": 1
+        },
+        "winner": "1755699987405"
+      },
+      "players": {
+        "1755699987405": {
+          "choice": "rock"
+        }
+      }
+    },
+    "-OY6thBX_RHB930W2iwZ": {
+      "players": {
+        "1755700446783": {
+          "choice": "rock"
+        }
+      }
+    },
+    "-OY6zH47kWNmqP2Z3kzw": {
+      "players": {
+        "1755701910352": {
+          "choice": "rock"
+        }
+      }
+    },
+    "-OY7--54cdiYQd_E9sYJ": {
+      "lastResult": {
+        "scores": {
+          "1755702098748": 0,
+          "1755702103247": 1
+        },
+        "winner": "1755702103247",
+        "winnerName": "Hh"
+      },
+      "players": {
+        "1755702098748": {
+          "choice": "",
+          "name": "Gg"
+        },
+        "1755702103247": {
+          "choice": "rock",
+          "name": "Hh"
+        }
+      },
+      "status": "playing"
+    },
+    "-OY73kwBOw1jel4z7sMz": {
+      "players": {
+        "1755703347795": {
+          "choice": "",
+          "name": "Yy"
+        },
+        "1755703518171": {
+          "choice": "paper",
+          "name": "Urje"
+        }
+      },
+      "status": "playing"
+    },
+    "-OY76D7PQKRIs_kbg-Rf": {
+      "lastResult": {
+        "message": {
+          "1755703990976": "You Lose ❌ Match Terminated ⏳",
+          "1755703996252": "You Lose ❌ Match Terminated ⏳"
+        },
+        "scores": {
+          "1755703990976": 0,
+          "1755703996252": 0
+        },
+        "winner": "draw",
+        "winnerName": "Nobody"
+      }
+    },
+    "-OY7ABIUG9ZUXxHCaXV6": {
+      "ended": false,
+      "lastResult": {
+        "final": false,
+        "message": {
+          "1755705033772": "Draw 🤝",
+          "1755705039219": "Draw 🤝"
+        },
+        "scores": {
+          "1755705033772": 0,
+          "1755705039219": 2
+        },
+        "terminated": false,
+        "winner": "draw",
+        "winnerName": "Nobody"
+      },
+      "players": {
+        "1755705033772": {
+          "choice": "",
+          "name": "Rama"
+        },
+        "1755705039219": {
+          "choice": "",
+          "name": "Jana"
+        }
+      },
+      "status": "playing"
+    },
+    "lastResult": {
+      "scores": {
+        "me": 0,
+        "opp": 0
+      },
+      "winner": "draw",
+      "winnerName": "Nobody"
+    },
+    "match_001": {
+      "players": {
+        "1755696809589": {
+          "choice": "paper",
+          "name": "Rak"
+        },
+        "player_12345": {
+          "choice": "",
+          "name": "Suraj Yadav"
+        }
+      },
+      "status": "playing"
+    },
+    "match_002": {
+      "players": {
+        "player_54321": {
+          "choice": "scissors",
+          "name": "Bob"
+        },
+        "player_67890": {
+          "choice": "rock",
+          "name": "Alice"
+        }
+      },
+      "status": "playing"
+    }
+  }
+}

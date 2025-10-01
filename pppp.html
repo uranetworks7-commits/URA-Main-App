@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>URA - User Info</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif;}
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(145deg, #e0e0e0, #ffffff);
+      background-image: url('white-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      padding: 20px;
+    }
+    .card, .lockscreen {
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      width: 100%; max-width: 440px;
+      animation: fadeIn 0.8s ease;
+    }
+    .lockscreen { display: none; text-align: center; }
+    .lockscreen input {
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #aaa;
+      width: 100%; margin-top: 15px;
+    }
+    .lockscreen button {
+      margin-top: 20px;
+      background: #1976d2; color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer; font-size: 16px;
+    }
+    .title {
+      font-size: 26px; font-weight: 600; text-align: center;
+      margin-bottom: 25px;
+      background: linear-gradient(to right, #00bcd4, #2196f3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .item {font-size: 16px; margin-bottom: 12px; color: #222; display: flex; justify-content: space-between; align-items: center;}
+    .label { font-weight: 600; color: #555; }
+    .value { color: #1976d2; font-weight: 600; max-width: 55%; word-break: break-word; text-align: right; }
+    .copyBtn {
+      background: #2196f3; color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 13px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .footer-btns {
+      margin-top: 25px;
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    }
+    .footer-btns button {
+      background: #222; color: white;
+      padding: 10px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #toast {
+      position: fixed;
+      bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #323232; color: #fff;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 14px;
+      display: none; z-index: 1000;
+    }
+    #qrSection {
+      margin-top: 20px; text-align: center;
+      display: none;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="lockscreen" id="lockscreen">
+  <div class="title" id="pinTitle">🔒 Enter PIN</div>
+  <input type="password" id="pinInput" maxlength="4" placeholder="****" />
+  <button onclick="handlePIN()" id="pinBtn">Unlock</button>
+</div>
+
+<div class="card" id="userCard" style="display:none;">
+  <div class="title">URA - User Info</div>
+
+  <div class="item"><span class="label">Username:</span><span class="value" id="username">...</span><button class="copyBtn" onclick="copyText('username')">Copy</button></div>
+  <div class="item"><span class="label">Email:</span><span class="value" id="email">...</span><button class="copyBtn" onclick="copyText('email')">Copy</button></div>
+  <div class="item"><span class="label">Region:</span><span class="value">IND/UP/VNS</span></div>
+  <div class="item"><span class="label">Subscription:</span><span class="value">Free User</span></div>
+  <div class="item"><span class="label">API:</span><span class="value">Slsbu29lmsbbdjs9973uuiwkms.ura.api</span></div>
+  <div class="item"><span class="label">Approved By:</span><span class="value">VLC-TEC</span></div>
+  <div class="item"><span class="label">Security Status:</span><span class="value">ROG</span></div>
+  <div class="item"><span class="label">Location:</span><span class="value">FBGS-18</span></div>
+  <div class="item"><span class="label">Received Data:</span><span class="value">N/A</span></div>
+
+  <div class="footer-btns">
+    <button onclick="downloadPDF()">📄 PDF</button>
+    <button onclick="logout()">Logout 🔓</button>
+    <button onclick="showQR()">QR 📱</button>
+  </div>
+
+  <div id="qrSection">
+    <canvas id="qrcode" style="margin-top:10px;"></canvas>
+    <p style="font-size:14px;">Scan to see full user data</p>
+  </div>
+</div>
+
+<div id="toast">Copied ✅</div>
+<audio id="beepSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+<script>
+const user = localStorage.getItem("username") || "Unknown";
+const email = localStorage.getItem("api") || "Unknown";
+const pin = localStorage.getItem("userPIN");
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.style.display = "block";
+  setTimeout(() => toast.style.display = "none", 2000);
+}
+
+function handlePIN() {
+  const input = document.getElementById("pinInput").value;
+  if (!pin) {
+    if (input.length === 4) {
+      localStorage.setItem("userPIN", input);
+      unlockPage();
+    } else {
+      showToast("Enter 4-digit PIN to set");
+    }
+  } else {
+    if (input === pin) {
+      unlockPage();
+    } else {
+      showToast("Wrong PIN ❌");
+    }
+  }
+}
+
+function unlockPage() {
+  document.getElementById("lockscreen").style.display = "none";
+  document.getElementById("userCard").style.display = "block";
+  document.getElementById("username").textContent = user;
+  document.getElementById("email").textContent = email;
+  document.getElementById("beepSound").play().catch(() => {});
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => showToast("Copied ✅"));
+}
+
+function logout() {
+  localStorage.clear();
+  showToast("Logged out ✅");
+  setTimeout(() => location.href = "index.html", 2000);
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text("URA APP - User Info", 20, 20);
+  const details = [
+    ["Username", user],["Email", email],["Region", "IND/UP/VNS"],["Subscription", "Free User"],
+    ["API", "Slsbu29lmsbbdjs9973uuiwkms.ura.api"],["Approved By", "VLC-TEC"],["Security", "ROG"],["Location", "FBGS-18"],["Received Data", "N/A"]
+  ];
+  let y = 40;
+  details.forEach(([k,v]) => { doc.text(`${k}: ${v}`, 20, y); y += 10; });
+  doc.save("ura-user-info.pdf");
+}
+
+function showQR() {
+  const info = `Username: ${user}\nEmail: ${email}\nRegion: IND/UP/VNS\nSubscription: Free User\nAPI: Slsbu29lmsbbdjs9973uuiwkms.ura.api\nApproved By: VLC-TEC\nSecurity: ROG\nLocation: FBGS-18\nReceived Data: N/A`;
+  new QRious({element: document.getElementById("qrcode"), size: 180, value: info.trim() });
+  document.getElementById("qrSection").style.display = "block";
+}
+
+window.onload = () => {
+  if (!pin) {
+    document.getElementById("pinTitle").textContent = "🔐 Set New PIN";
+    document.getElementById("pinBtn").textContent = "Save PIN";
+  }
+  document.getElementById("lockscreen").style.display = "block";
+};
+</script>
+</body>
+</html>

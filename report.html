@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Help & Report</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('report.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 25px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px #000;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+    input[readonly] {
+      background: #eaeaea;
+      color: #444;
+      cursor: not-allowed;
+    }
+    textarea {
+      background: #f0f0f0;
+      color: #333;
+    }
+    button {
+      background: #00a8ff;
+      color: white;
+      cursor: pointer;
+    }
+    #alertBox {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f1c40f;
+      color: black;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="alertBox">System Notice 📢</div>
+
+<div class="form-container">
+  <h2>📨 Help & Report</h2>
+  <input type="text" id="username" placeholder="Your Username" readonly />
+  <input type="email" id="email" placeholder="Your Email" readonly />
+  <textarea id="message" placeholder="Type your problem here..." rows="5"></textarea>
+  <button onclick="submitReport()">🚀 Submit Report</button>
+  <button onclick="location.href='main.html'">🔙 Back</button>
+</div>
+
+<script>
+  const reportBackend = "https://script.google.com/macros/s/AKfycbzWRz15jHmXb-_UjKX4pS8rgzWrgsWLESTkD9jDck6b2wprdQjR2v04s0AP_7pXgj_WYw/exec";
+
+  function systemNotice(msg) {
+    const box = document.getElementById("alertBox");
+    box.innerText = "System Notice 📢: " + msg;
+    box.style.display = "block";
+    setTimeout(() => box.style.display = "none", 4000);
+  }
+
+  function submitReport() {
+    const u = document.getElementById("username").value.trim();
+    const e = document.getElementById("email").value.trim();
+    const m = document.getElementById("message").value.trim();
+
+    if (!u || !e || !m) {
+      return systemNotice("All fields are required.");
+    }
+
+    const url = `${reportBackend}?action=report&username=${encodeURIComponent(u)}&api=${encodeURIComponent(e)}&message=${encodeURIComponent(m)}`;
+
+    fetch(url)
+      .then(res => res.text())
+      .then(data => {
+        if (data === "Done") {
+          systemNotice("✅ Report submitted successfully!");
+          document.getElementById("message").value = "";
+        } else if (data === "Missing") {
+          systemNotice("❌ Please fill all fields properly.");
+        } else if (data === "SheetNotFound") {
+          systemNotice("⚠️ Sheet not found. Contact admin.");
+        } else {
+          systemNotice("❌ Something went wrong.");
+        }
+      })
+      .catch(() => systemNotice("❌ Failed to connect. Try again later."));
+  }
+
+  window.onload = () => {
+    const u = localStorage.getItem("username");
+    const e = localStorage.getItem("api");
+    if (u) document.getElementById("username").value = u;
+    if (e) document.getElementById("email").value = e;
+  };
+</script>
+
+</body>
+</html>

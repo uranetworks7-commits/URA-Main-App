@@ -1,0 +1,37 @@
+{
+  "chatUsers": {
+    "Sani808": {
+      "chatName": "\ud83d\udce2Ramesh",
+      "role": "moderator"
+    },
+    "Utkarsh999": {
+      "chatName": "\ud83d\udc51Utkarsh",
+      "role": "supermod"
+    },
+    "Yash_444": {
+      "chatName": "\ud83d\udc64Yash",
+      "role": "user"
+    }
+  },
+  "messages": {
+    "msg1": {
+      "name": "\ud83d\udce2Ramesh",
+      "text": "Hello everyone!",
+      "time": 1723456789012,
+      "username": "Sani808",
+      "color": "blue"
+    },
+    "msg2": {
+      "name": "\ud83d\udc51Utkarsh",
+      "text": "Hi Ramesh, welcome to the chat!",
+      "time": 1723456790123,
+      "username": "Utkarsh999",
+      "color": ""
+    }
+  },
+  "blockedUsers": {
+    "Yash_444": {
+      "until": 1723460400000
+    }
+  }
+}

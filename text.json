@@ -1,0 +1,48 @@
+{
+  "games": {
+    "gameId_12345": {
+      "status": "waiting", 
+      "createdAt": 1692185610000,
+      "players": {
+        "player1": {
+          "uid": "uid123",
+          "username": "Utkarsh",
+          "symbol": "X",
+          "score": 0
+        },
+        "player2": {
+          "uid": null,
+          "username": null,
+          "symbol": "O",
+          "score": 0
+        }
+      },
+      "board": [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""]
+      ],
+      "turn": "X",
+      "winner": null,
+      "roundResult": null, 
+      "matchStart": false
+    }
+  },
+  "matchmaking": {
+    "waitingPlayers": {
+      "uid123": {
+        "username": "Utkarsh",
+        "timestamp": 1692185610000,
+        "gameId": "gameId_12345"
+      }
+    }
+  },
+  "users": {
+    "uid123": {
+      "username": "Utkarsh",
+      "gamesPlayed": 10,
+      "gamesWon": 4,
+      "gamesLost": 6
+    }
+  }
+}

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live News - URA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon: #00f7ff;
+      --glass: rgba(0,0,0,0.55);
+      --text: #fff;
+      --gradient: linear-gradient(135deg,#00f7ff,#ff00d4,#ffcc00);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: url('livenews.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Dark stylish overlay on background */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.3));
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Animated overlay gradient */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: linear-gradient(120deg, rgba(0,247,255,0.15), rgba(255,0,212,0.15), rgba(255,204,0,0.15));
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+      z-index: 0;
+    }
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(820px, 92vw);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 32px 26px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0,247,255,0.4);
+      animation: fadeIn 0.8s ease-out both;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: -2px;
+      border-radius: 24px;
+      padding: 2px;
+      background: var(--gradient);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      animation: borderGlow 6s linear infinite;
+    }
+    @keyframes borderGlow {
+      0% {filter: hue-rotate(0deg);}
+      100% {filter: hue-rotate(360deg);}
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .title {
+      font-weight: 800;
+      font-size: clamp(20px, 4vw, 30px);
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glowPulse 3s infinite;
+    }
+    @keyframes glowPulse {
+      0%,100% {text-shadow: 0 0 8px rgba(0,247,255,.6);}
+      50% {text-shadow: 0 0 18px rgba(255,0,212,.7);}
+    }
+    .status { font-size: 14px; opacity:.85; }
+
+    .news {
+      font-size: clamp(16px, 3.4vw, 20px);
+      line-height: 1.8;
+      text-align: center;
+      padding: 10px 6px;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      animation: fadeIn 1s ease-in;
+    }
+
+    /* Neon animated link buttons */
+    .nlink {
+      display: inline-block;
+      margin: 12px 6px 0;
+      padding: 10px 16px;
+      border-radius: 12px;
+      background: var(--neon);
+      color: #000;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 0 20px var(--neon);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .15s ease;
+    }
+    .nlink::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.5);
+      transform: skewX(-20deg);
+    }
+    .nlink:hover::after {
+      animation: shine .7s ease;
+    }
+    .nlink:hover { transform: translateY(-2px) scale(1.02); }
+    @keyframes shine { to { left: 200%; } }
+
+    /* Loading dots bounce */
+    .loading {
+      font-size: 18px;
+      color: var(--neon);
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .dots span {
+      display:inline-block;
+      width: 8px; height: 8px;
+      background: var(--neon);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .dots span:nth-child(2){animation-delay: .2s}
+    .dots span:nth-child(3){animation-delay: .4s}
+    @keyframes bounce {
+      0%,80%,100% { transform: scale(0.6); opacity: .6; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Fullscreen viewer */
+    .topbar {
+      position: fixed; inset: 0 0 auto 0; height: 56px;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(10px);
+      display: flex; align-items: center; gap: 10px; padding: 0 12px;
+      z-index: 1000; box-shadow: 0 2px 18px rgba(0,0,0,.4);
+      animation: slideDown .4s ease;
+    }
+    @keyframes slideDown {
+      from {transform: translateY(-100%);} to {transform: translateY(0);}
+    }
+    .back {
+      padding: 8px 16px; border-radius: 12px; background: var(--neon);
+      color: #000; font-weight: 800; border: none; cursor: pointer;
+      box-shadow: 0 0 16px var(--neon);
+      transition: transform .15s;
+    }
+    .back:hover { transform: scale(1.05); }
+
+    .viewer {
+      position: fixed; inset: 56px 0 0 0; border: 0; width: 100%;
+      height: calc(100vh - 56px); z-index: 999;
+      animation: fadeIn .5s ease;
+      background: radial-gradient(circle at top left, rgba(0,247,255,0.15), transparent 70%),
+                  radial-gradient(circle at bottom right, rgba(255,0,212,0.15), transparent 70%),
+                  #000;
+      background-size: 200% 200%;
+      animation: neonMove 10s linear infinite;
+    }
+
+    @keyframes neonMove {
+      0% { background-position: 0% 0%, 100% 100%, center; }
+      50% { background-position: 100% 0%, 0% 100%, center; }
+      100% { background-position: 0% 0%, 100% 100%, center; }
+    }
+
+    .hide { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="hdr">
+        <div class="title">📡 Live News — URA</div>
+        <div class="status" id="updated">Updating…</div>
+      </div>
+      <div class="news" id="liveNews">
+        <div class="loading">Loading <div class="dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen embed viewer -->
+  <div id="fsTopbar" class="topbar hide">
+    <button class="back" onclick="closeViewer()">⬅ Back</button>
+    <div id="fsTitle" style="font-weight:700; opacity:.9;">Viewer</div>
+  </div>
+  <iframe id="viewer" class="viewer hide" allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+
+  <script>
+    const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwX83soxKHSRqpMghqMP49jeWqJ9GevSZ3NJyJS-2MSKbKSJNDNSHbvyH5SXWu-wL5vjg/exec';
+    const AUTO_REFRESH_MS = 20000;
+    const NAVIGATE_IN_APP = ['github.com','mediafire.com','drive.google.com','linkedin.com','twitter.com','x.com'];
+
+    const elNews=document.getElementById('liveNews');
+    const elUpdated=document.getElementById('updated');
+    const elViewer=document.getElementById('viewer');
+    const elFsTop=document.getElementById('fsTopbar');
+    const elFsTitle=document.getElementById('fsTitle');
+
+    function fmtTime(d=new Date()){
+      return d.toLocaleTimeString();
+    }
+
+    async function loadNews(){
+      try{
+        const res=await fetch(SHEET_ENDPOINT,{cache:'no-store'});
+        const text=await res.text();
+        elNews.innerHTML=renderSheetText(text);
+        elUpdated.textContent=`Updated ${fmtTime()}`;
+      }catch(e){
+        elNews.innerHTML=`<div class="loading">⚠️ Failed to load news.</div>`;
+        elUpdated.textContent=`Error ${fmtTime()}`;
+      }
+    }
+
+    function renderSheetText(text){
+      const escaped=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const urlRegex=/(https?:\/\/[^\s]+)/g;
+      return "📰 "+escaped.replace(urlRegex,(rawUrl)=>{
+        const url=rawUrl.replace(/&amp;/g,'&');
+        const host=hostname(url);
+        const yt=toYouTubeEmbed(url);
+        if(yt) return `<a class="nlink" onclick="openViewer('${yt}','YouTube')">▶ Watch YouTube</a>`;
+        if(shouldNavigate(host)) return `<a class="nlink" onclick="navigateInApp('${url}')">🌐 ${label(host)}</a>`;
+        return `<a class="nlink" onclick="openViewer('${url}','${label(host)}')">🔗 ${label(host)}</a>`;
+      });
+    }
+
+    function hostname(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch{return ''}}
+    function label(h){return h||'Link'}
+    function shouldNavigate(h){return NAVIGATE_IN_APP.some(d=>h.endsWith(d))}
+
+    function toYouTubeEmbed(url){
+      try{
+        const u=new URL(url);const h=u.hostname.replace(/^www\./,'');
+        if(h==='youtu.be'){return `https://www.youtube.com/embed/${u.pathname.slice(1)}`}
+        if(h==='youtube.com'||h==='m.youtube.com'){
+          if(u.pathname==='/watch'&&u.searchParams.get('v')) return `https://www.youtube.com/embed/${u.searchParams.get('v')}`;
+          if(u.pathname.startsWith('/shorts/')) return `https://www.youtube.com/embed/${u.pathname.split('/')[2]}`;
+          if(u.pathname.startsWith('/live/')) return `https://www.youtube.com/embed/${u.pathname.split('/')[2]}`;
+        }
+      }catch{} return null;
+    }
+
+    function openViewer(url,title='Viewer'){
+      elFsTitle.textContent=title;
+      elViewer.src=url;
+      elViewer.classList.remove('hide');
+      elFsTop.classList.remove('hide');
+      document.getElementById('card').classList.add('hide');
+    }
+    function closeViewer(){
+      elViewer.src='about:blank';
+      elViewer.classList.add('hide');
+      elFsTop.classList.add('hide');
+      document.getElementById('card').classList.remove('hide');
+    }
+    function navigateInApp(url){window.location.href=url;}
+
+    loadNews();
+    setInterval(loadNews,AUTO_REFRESH_MS);
+  </script>
+</body>
+</html>

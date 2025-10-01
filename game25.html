@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape" />
+  <title>1v1 Firebase Gun Fight</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #000; color: #fff; overflow: hidden; text-align: center; }
+    canvas { background: #111; display: block; margin: 10px auto; width: 96vw; height: 56vh; }
+    #controls button { padding: 12px 20px; margin: 5px; font-size: 16px; border-radius: 8px; border: none; background: yellow; color: black; font-weight: bold; cursor: pointer; }
+    #reportBtn { background: #e74c3c; color: white; font-weight: bold; padding: 12px 20px; margin: 5px; border-radius: 8px; border: none; cursor: pointer; }
+    #joinUI input { padding: 10px; margin: 5px; font-size: 16px; border-radius: 6px; border: none; }
+    #hud { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; font-size: 16px; font-weight: bold; color: white; }
+    #msg { font-size: 20px; color: cyan; margin: 10px; }
+    #result { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); font-size: 20px; color: white; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 12px; display: none; }
+    @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    #customAlert { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); color: white; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; z-index: 10000; }
+    #customAlert > div { background: #222; padding: 20px 30px; border-radius: 10px; max-width: 300px; text-align: center; box-shadow: 0 0 15px cyan; }
+    #customAlert > div > .title { font-size: 24px; margin-bottom: 12px; }
+    #customAlert > div > button { padding: 10px 20px; border:none; border-radius: 6px; background: cyan; color: black; font-weight: bold; cursor: pointer; }
+
+    /* Fullscreen overlays */
+    .fullOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 20000;
+      padding: 20px;
+      box-sizing: border-box;
+      font-family: sans-serif;
+    }
+    #winOverlay {
+      background: rgba(0, 120, 0, 0.94);
+      color: #fff;
+      font-size: 6vmin;
+      flex-direction: column;
+    }
+    #cheatOverlay {
+      background: rgba(180, 0, 0, 0.94);
+      color: #fff;
+      font-size: 5.5vmin;
+      flex-direction: column;
+      animation: flicker 1.2s infinite alternate;
+    }
+    .overlayBtn {
+      margin-top: 18px; padding: 12px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;
+      font-size: 3.5vmin;
+    }
+    .overlayBtn.win { background: #fff; color: #0a0; }
+    .overlayBtn.cheat { background: #fff; color: #900; }
+
+    /* offline overlay styling (keeps look similar to your existing overlays) */
+    #offlineOverlay {
+      background: rgba(0,0,0,0.88);
+      color: #fff;
+      font-size: 5.5vmin;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 25000;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    #offlineOverlay .count { font-size: 8vmin; margin-top: 12px; color: cyan; }
+
+    /* simple quit confirm modal */
+    #quitConfirmModal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh; display: none;
+      background: rgba(0,0,0,0.7); z-index: 30000; align-items: center; justify-content: center;
+    }
+    #quitConfirmModal .box {
+      background: #111; padding: 20px; border-radius: 10px; text-align: center; min-width: 260px;
+      box-shadow: 0 0 18px rgba(0,255,255,0.08);
+    }
+    #quitConfirmModal .box button { margin: 10px; padding: 10px 18px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    #quitConfirmModal .yes { background: #e74c3c; color: #fff; }
+    #quitConfirmModal .no { background: #fff; color: #000; }
+  </style>
+</head>
+<body>
+  <h2>1v1 URA Gun Fight</h2>
+
+  <div id="joinUI">
+    <input id="room" placeholder="Room Code" />
+    <input id="name" placeholder="Your Game Nickname" />
+    <button onclick="startGame()">Join Game</button>
+    <a href="cj.html"><button>Game Manual</button></a>
+
+  <h1 style="padding: 15px;">🎮 Please Read Game Manual Before Play</h1>
+
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="hud"><div id="leftHUD"></div><div id="rightHUD"></div></div>
+    <div id="msg">Waiting for player...</div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+    <div id="controls">
+      <button onclick="moveLeft()">⬅️</button>
+      <button onclick="jump()">⬆️</button>
+      <button onclick="moveRight()">➡️</button>
+      <button onclick="fire()">🔫</button>
+      <button id="reportBtn" onclick="reportOpponent()">Report</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <div id="customAlert"> 
+    <div>
+      <div class="title">System Notice 📢</div>  
+      <div id="customAlertMessage"></div>
+      <button onclick="hideCustomAlert()">OK</button>
+    </div>
+  </div>
+
+  <div id="winOverlay" class="fullOverlay" role="dialog" aria-live="assertive">
+    <div id="winText">🎉 YOU WIN THE MATCH 🎉</div>
+    <button class="overlayBtn win" onclick="dismissWinOverlay()">Exit</button>
+  </div>
+
+  <div id="cheatOverlay" class="fullOverlay" role="alert" aria-live="assertive">
+    <div style="font-weight:bold; margin-bottom:10px;">🚨 CHEAT DETECTED 🚨</div>
+    <div id="cheatText">The match has been terminated due to a reported hacker.</div>
+    <button class="overlayBtn cheat" onclick="dismissCheatOverlay()">Exit</button>
+  </div>
+
+  <div id="quitConfirmModal">
+    <div class="box">
+      <div style="font-size:18px; font-weight:bold; margin-bottom:12px;">Are you sure you want to quit this match?</div>
+      <div>
+        <button class="yes" id="quitYesBtn">Yes</button>
+        <button class="no" id="quitNoBtn">No</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXNGzvFUtkGlB0pPDW1FOsrkamPNl2HSI",
+      authDomain: "gunfightgame-166d9.firebaseapp.com",
+      databaseURL: "https://gunfightgame-166d9-default-rtdb.firebaseio.com",
+      projectId: "gunfightgame-166d9",
+      storageBucket: "gunfightgame-166d9.appspot.com",
+      messagingSenderId: "1060940709340",
+      appId: "1:1060940709340:web:ad1d94f60524d90b252319"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let room = "", role = "", opponentRole = "";
+    let accountName = "", displayName = "", fullDisplayName = "";
+    let specialCode = null;
+    let player = { x: 100, y: 340, vy: 0, hp: 200, kills: 0 };
+    let opponent = { x: 700, y: 340, hp: 200, kills: 0, name: "" };
+    let bullets = [], enemyBullets = [];
+    let lastFireTime = 0, shotsFired = 0, reloading = false;
+    let matchEnded = false, gameStarted = false;
+    let lastEnemyBulletCount = 0;
+
+    const WIN_KILLS = 2;
+
+    const bgImg = new Image(); bgImg.src = "mmm.png";
+    const playerImg = new Image(); playerImg.src = "Player1.png";
+    const gunSound = new Audio("sound.mp3");
+
+    function showCustomAlert(message) {
+      document.getElementById('customAlertMessage').innerText = message;
+      document.getElementById('customAlert').style.display = 'flex';
+    }
+    function hideCustomAlert() { document.getElementById("customAlert").style.display = "none"; }
+    function sanitizeKey(key) { return key.replace(/[.#$[\]]/g, "_"); }
+    function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+    function bulletId() { return `${Date.now()}_${Math.random().toString(36).substr(2,5)}`; }
+
+    /* Overlay helpers */
+    function showWinOverlay(text) {
+      const el = document.getElementById("winOverlay");
+      const t = document.getElementById("winText");
+      if (text) t.innerText = text;
+      if (el) el.style.display = "flex";
+      document.querySelectorAll("#controls button").forEach(b => b.disabled = true);
+    }
+    function dismissWinOverlay() {
+      const el = document.getElementById("winOverlay");
+      if (el) el.style.display = "none";
+      location.reload();
+    }
+
+    function showCheatOverlay(text) {
+      const el = document.getElementById("cheatOverlay");
+      const t = document.getElementById("cheatText");
+      if (text) t.innerText = text;
+      if (el) el.style.display = "flex";
+      document.querySelectorAll("#controls button").forEach(b => b.disabled = true);
+    }
+    function dismissCheatOverlay() {
+      const el = document.getElementById("cheatOverlay");
+      if (el) el.style.display = "none";
+      location.reload();
+    }
+
+    /* -------------------------
+       main game functions (preserved)
+       ------------------------- */
+    function startGame() {
+      room = sanitizeKey(document.getElementById("room").value.trim());
+      accountName = localStorage.getItem("username") || "Guest";
+      fullDisplayName = document.getElementById("name").value.trim() || accountName; // keep original
+      displayName = fullDisplayName;
+
+      if (!room || !accountName) { showCustomAlert("Room Code missing or not logged in."); return; }
+
+      if (displayName.startsWith("#225")) { specialCode = "225"; displayName = displayName.slice(4); }
+      else if (displayName.startsWith("#226")) { specialCode = "226"; displayName = displayName.slice(4); }
+
+      const ref = db.ref(room);
+      ref.once("value", snap => {
+        const data = snap.val() || {};
+        if (!data.player1) { role = "player1"; opponentRole = "player2"; player.x = 100; }
+        else if (!data.player2) { role = "player2"; opponentRole = "player1"; player.x = 700; }
+        else { showCustomAlert("Room Full"); return; }
+
+        document.getElementById("joinUI").style.display = "none";
+        document.getElementById("game").style.display = "block";
+
+        db.ref(`${room}/${role}`).set({
+          accountName,
+          displayName,
+          name: fullDisplayName, // store full name with code if any
+          x: player.x, y: player.y,
+          hp: 200, bullets: [], kills: 0
+        });
+
+        listenToOpponent();
+
+        db.ref(room).on("value", snap => {
+          const val = snap.val() || {};
+          if (val.player1 && val.player2 && !gameStarted) {
+            gameStarted = true;
+            document.getElementById("msg").innerText = "";
+            initGame();
+          }
+        });
+
+        // Live kill listener for win/lose detection
+        db.ref(room).on("value", snap => {
+          const data = snap.val() || {};
+          const myKills = data[role]?.kills || 0;
+          const oppKills = data[opponentRole]?.kills || 0;
+          if (!matchEnded && myKills >= WIN_KILLS) {
+            matchEnded = true;
+            db.ref(`${room}/winner`).set({ accountName, displayName });
+            showResult(`🎉 Congratulations! You Win. Game Ended`);
+            showWinOverlay(`🎉 YOU WIN THE MATCH 🎉`);
+          }
+          if (!matchEnded && oppKills >= WIN_KILLS) {
+            matchEnded = true;
+            db.ref(`${room}/winner`).set({ accountName: opponent.accountName || "Unknown", displayName: opponent.displayName || opponent.name || "Unknown" });
+            // Show textual "You Defeated" for the loser
+            if (!matchEnded) showResult(`😞 You Defeated Try Next Time , Give Your Best. Game Ended`);
+          }
+        });
+
+        // Reliable winner listener (so overlay shows even if client missed the moment)
+        db.ref(`${room}/winner`).on("value", snap => {
+          const w = snap.val();
+          if (!w) return;
+          const winnerName = (w.displayName || w.accountName || "").toString();
+          const winnerAccount = (w.accountName || "").toString();
+          const normalizedWinnerName = winnerName.trim().toLowerCase();
+          const myNormalized = (displayName || accountName || "").toString().trim().toLowerCase();
+
+          if (myNormalized && (myNormalized === normalizedWinnerName || (accountName && accountName === winnerAccount))) {
+            // I'm the winner
+            showWinOverlay(`🎉 YOU WIN THE MATCH 🎉`);
+          } else {
+            // I'm not the winner => loser message
+            showWinOverlay(`😞 You Defeated , Try Next Time , Give your Best`);
+          }
+        });
+      });
+    }
+
+    function listenToOpponent() {
+      db.ref(`${room}/${opponentRole}`).on("value", snap => {
+        const data = snap.val() || {};
+        opponent.accountName = data.accountName || "?";
+        opponent.displayName = data.displayName || data.name || "Enemy";
+        opponent.name = data.name || "Enemy";
+        if (typeof data.x === "number") opponent.x = clamp(data.x, 0, 770);
+        if (typeof data.y === "number") opponent.y = data.y;
+        if (typeof data.hp === "number") opponent.hp = data.hp;
+        if (typeof data.kills === "number") opponent.kills = data.kills;
+
+        let newBullets = data.bullets || [];
+        if (newBullets.length > lastEnemyBulletCount) {
+          gunSound.currentTime = 0; gunSound.play();
+        }
+        lastEnemyBulletCount = newBullets.length;
+        enemyBullets = newBullets;
+      });
+    }
+
+    function initGame() {
+      const ctx = document.getElementById("canvas").getContext("2d");
+      setInterval(() => {
+        if (!gameStarted || matchEnded) return;
+        applyGravity(); updateFirebase(); updateBullets();
+        processEnemyBullets(); checkOpponentDeath(); drawGame(ctx);
+      }, 50);
+    }
+
+    function applyGravity() { player.vy += 2; player.y += player.vy; if (player.y >= 340) { player.y = 340; player.vy = 0; } }
+    function updateFirebase() { db.ref(`${room}/${role}`).update({ x: player.x, y: player.y, hp: player.hp, bullets, kills: player.kills }); }
+    function updateBullets() { bullets.forEach(b => b.x += b.dir * 10); bullets = bullets.filter(b => b.x > 0 && b.x < 800); db.ref(`${room}/${role}/bullets`).set(bullets); }
+    function processEnemyBullets() { enemyBullets.forEach(b => { if (Math.abs(b.x - player.x) < 30 && Math.abs(b.y - player.y) < 60) { db.ref(`${room}/${opponentRole}/bullets`).set(enemyBullets.filter(eb => eb.id !== b.id)); enemyBullets = enemyBullets.filter(eb => eb.id !== b.id); player.hp -= 18; if (player.hp <= 0) { player.hp = 0; handleDeath(); } } }); }
+    function fire() { if (!gameStarted || matchEnded) return; const now = Date.now(); const fireInterval = (specialCode === "225" || specialCode === "226") ? 50 : 500; if (reloading || now - lastFireTime < fireInterval) return; lastFireTime = now; shotsFired++; bullets.push({ id: bulletId(), x: player.x + 15, y: player.y + 30, dir: role === "player1" ? 1 : -1 }); db.ref(`${room}/${role}/bullets`).set(bullets); gunSound.currentTime = 0; gunSound.play(); if (!specialCode && shotsFired >= 10) { reloading = true; document.getElementById("msg").innerText = "🔁 Reloading..."; setTimeout(() => { shotsFired = 0; reloading = false; document.getElementById("msg").innerText = ""; }, 5000); } }
+    function handleDeath() { db.ref(`${room}/${opponentRole}/kills`).transaction(k => (k || 0) + 1, () => { respawnPlayers(); }); }
+    function checkOpponentDeath() { if (opponent.hp <= 0 && !matchEnded) { db.ref(`${room}/${role}/kills`).transaction(k => (k || 0) + 1, (err, committed, snap) => { if (!committed) return; player.kills = snap.val(); respawnPlayers(true); }); } }
+    function respawnPlayers(resetOpponent = false) { player.hp = 200; player.x = role === "player1" ? 100 : 700; bullets = []; db.ref(`${room}/${role}`).update({ hp: player.hp, x: player.x, bullets: [] }); if (resetOpponent) { db.ref(`${room}/${opponentRole}`).update({ hp: 200, x: opponentRole === "player1" ? 100 : 700, bullets: [] }); } }
+    function drawGame(ctx) { ctx.clearRect(0, 0, 800, 400); if (bgImg.complete) ctx.drawImage(bgImg, 0, 0, 800, 400); else { ctx.fillStyle = "#111"; ctx.fillRect(0, 0, 800, 400); } player.x = clamp(player.x, 0, 770); if (playerImg.complete) ctx.drawImage(playerImg, player.x, player.y, 30, 60); else { ctx.fillStyle = "yellow"; ctx.fillRect(player.x, player.y, 30, 60); } if (playerImg.complete) ctx.drawImage(playerImg, opponent.x, opponent.y, 30, 60); else { ctx.fillStyle = "red"; ctx.fillRect(opponent.x, opponent.y, 30, 60); } ctx.fillStyle = "white"; bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4)); enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4)); updateHUD(); }
+    function updateHUD() { document.getElementById("leftHUD").innerText = `${displayName} | HP: ${player.hp} | Kills: ${player.kills}`; document.getElementById("rightHUD").innerText = `${opponent.displayName || "Enemy"} | HP: ${opponent.hp || 0} | Kills: ${opponent.kills || 0}`; }
+    function moveLeft() { if (matchEnded) return; const speed = specialCode ? 100 : 20; player.x = Math.max(0, player.x - speed); }
+    function moveRight() { if (matchEnded) return; const speed = specialCode ? 100 : 20; player.x = Math.min(770, player.x + speed); }
+    function jump() { if (matchEnded) return; if (player.y >= 339) { const jumpPower = specialCode ? -75 : -25; player.vy = jumpPower; } }
+    function showResult(text) { const resultBox = document.getElementById("result"); resultBox.innerText = text; const exitBtn = document.createElement("button"); exitBtn.innerText = "Exit Game"; exitBtn.style.marginTop = "15px"; exitBtn.style.padding = "10px"; exitBtn.onclick = () => location.reload(); resultBox.appendChild(document.createElement("br")); resultBox.appendChild(exitBtn); resultBox.style.display = "block"; }
+    function reportOpponent() {
+      if (matchEnded) return;
+      db.ref(`${room}/${opponentRole}/name`).once("value").then(snap => {
+        const oppFullName = (snap.val() || "").toString();
+        const norm = oppFullName.trim().toLowerCase();
+        // robust detection (still detects 225 if present) but message won't reveal code
+        const oppIs225 = norm.includes("225");
+        const oppIs226 = norm.includes("226");
+        if (oppIs225) {
+          // Do not show the code; show generic cheat message.
+          endMatchWithCheatMessage();
+          showCheatOverlay(`🚨 Cheat detected — match terminated.`);
+        } else if (oppIs226) {
+          showCustomAlert("Report Successfully: Under Review .");
+        } else {
+          showCustomAlert("Report submitted (Under Review).");
+        }
+      });
+    }
+    function endMatchWithCheatMessage() {
+      matchEnded = true;
+      // show overlay with generic message (no code)
+      showCheatOverlay(`🚨 Cheat detected — match terminated.`);
+      // keep existing result box behavior (unchanged)
+      const resultBox = document.getElementById("result");
+      resultBox.innerHTML = `<div id="cheatMsg" style="color: red;font-weight: bold;font-size: 24px;animation: flicker 1.5s infinite alternate;text-shadow: 0 0 10px red, 0 0 20px red, 0 0 30px darkred;">Cheat Detected<br>The Hacker in this match Detected & Punished<br>This Match Has Been Terminated</div>`;
+      const exitBtn = document.createElement("button");
+      exitBtn.innerText = "Exit Game";
+      exitBtn.style.marginTop = "15px";
+      exitBtn.style.padding = "10px 20px";
+      exitBtn.onclick = () => location.reload();
+      resultBox.appendChild(exitBtn);
+      resultBox.style.display = "block";
+      document.querySelectorAll("#controls button").forEach(b => b.disabled = true);
+    }
+
+    document.addEventListener('backbutton', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showCustomAlert("Back button is disabled during the game.");
+    }, false);
+  </script>
+
+  

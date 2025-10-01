@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Disabled</title>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .box {
+      background-color: #2ecc71;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 0 10px #2ecc71;
+    }
+    button {
+      background: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    img {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <img src="warning.png" alt="Warning">
+  <div class="box" id="msgBox">Loading message...</div>
+  <button onclick="window.location.reload()">OK</button>
+
+  <script>
+    const msg = localStorage.getItem("popupMessage") || "Login is disabled. Please wait.";
+    document.getElementById("msgBox").textContent = msg;
+  </script>
+</body>
+</html>

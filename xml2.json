@@ -1,0 +1,17 @@
+{
+  "eventStatus": {
+    "status": "ON",
+    "eventId": "event1"
+  },
+  "event1": {
+    "codes": {
+      "available": ["URA-10X-WIN", "URA-GIFT-992", "CODE-ULTIMATE-777"],
+      "used": []
+    },
+    "spins": {
+      "demoUser": {
+        "result": "Lose"
+      }
+    }
+  }
+}

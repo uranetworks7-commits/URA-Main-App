@@ -1,0 +1,24 @@
+{
+  "FIGHTROOM123": {
+    "status": "waiting",
+    "winner": null,
+    "player1": {
+      "name": "Vv",
+      "realUsername": "vv_user",
+      "x": 100,
+      "y": 340,
+      "hp": 200,
+      "kills": 0,
+      "bullets": []
+    },
+    "player2": {
+      "name": "Yg",
+      "realUsername": "yg_user",
+      "x": 700,
+      "y": 340,
+      "hp": 200,
+      "kills": 0,
+      "bullets": []
+    }
+  }
+}

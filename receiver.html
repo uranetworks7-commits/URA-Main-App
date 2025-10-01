@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📡 Receiver Transmission</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a40, #2c3e50);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    h2 {
+      text-shadow: 0 0 8px #00ffe0;
+      margin-bottom: 20px;
+    }
+    #messages {
+      padding: 20px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 12px;
+      font-size: 1.1em;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 20px;
+      font-size: 1em;
+      background: #00a8ff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0097e6;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📡 Receiver Transmission</h2>
+<div id="messages">Loading transmission...</div>
+<button onclick="history.back()">🔙 Back</button>
+
+<script>
+  const sheetUrl = "https://script.google.com/macros/s/AKfycbykOwv2dcfxo_WOl7QPmF66Er2Ui8CzYDYxd51BklLFPQoId2TUp-2BTFKxf_7C2z7t/exec";
+
+  fetch(sheetUrl)
+    .then(res => res.json())
+    .then(data => {
+      const reversed = data
+        .filter(msg => msg && msg.trim() !== "")
+        .map(msg => msg.split('').reverse().join(''))  // Reverse text
+        .join("\n\n");
+
+      document.getElementById("messages").innerText = reversed || "📭 No Transmission Available";
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("messages").innerText = "❌ Failed to load transmission.";
+    });
+</script>
+
+</body>
+</html>

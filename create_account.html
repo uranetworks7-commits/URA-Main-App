@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account - URA App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('createaccount.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 400px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+    }
+    input {
+      background: #f0f0f0;
+      color: #333;
+    }
+    button {
+      background: #00a8ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+    #alertBox {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f1c40f;
+      color: black;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #000;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="alertBox">System Notice 📢</div>
+
+<div class="form-container">
+  <h2>🆕 Create Free Account</h2>
+  <input type="text" id="username" placeholder="Enter Username" />
+  <input type="email" id="gmail" placeholder="Enter Gmail Address" />
+  <button id="submitBtn" onclick="submitAccount()">✅ Submit Request</button>
+  <button onclick="location.href='index.html'">🔙 Back to Login</button>
+</div>
+
+<script>
+  const backend = "https://script.google.com/macros/s/AKfycbyiroBKxMWB6HRHEAPCG9IBw21knjrPoaOp3HOSdBdWULmHVUestJDymf573BCBIUQC/exec";
+  const cooldownKey = "ura_account_cooldown";
+  const submitBtn = document.getElementById("submitBtn");
+
+  function systemNotice(msg) {
+    const box = document.getElementById("alertBox");
+    box.innerText = `System Notice 📢: ${msg}`;
+    box.style.display = "block";
+    setTimeout(() => box.style.display = "none", 4000);
+  }
+
+  function checkCooldown() {
+    const last = localStorage.getItem(cooldownKey);
+    if (!last) return;
+
+    const now = new Date().getTime();
+    const then = parseInt(last);
+    const diff = now - then;
+
+    if (diff < 48 * 60 * 60 * 1000) {
+      const remaining = 48 * 60 * 60 * 1000 - diff;
+      const hours = Math.floor(remaining / (60 * 60 * 1000));
+      const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+      submitBtn.disabled = true;
+      systemNotice(`Please wait ${hours}h ${minutes}m to request again.`);
+    }
+  }
+
+  function submitAccount() {
+    const u = document.getElementById("username").value.trim().toLowerCase();
+    const g = document.getElementById("gmail").value.trim().toLowerCase();
+
+    if (!u || !g) return systemNotice("All fields are required.");
+
+    fetch(`${backend}?action=createAccount&username=${encodeURIComponent(u)}&api=${encodeURIComponent(g)}&email=${encodeURIComponent(g)}`)
+      .then(res => res.text())
+      .then(data => {
+        if (data === "Requested") {
+          systemNotice("Request sent. Please wait for approval.");
+          localStorage.setItem("username", u);
+          localStorage.setItem("api", g);
+          localStorage.setItem(cooldownKey, new Date().getTime().toString());
+          submitBtn.disabled = true;
+        } else if (data === "Wait48Hours") {
+          systemNotice("Please wait 48 hours before trying again.");
+        } else if (data === "Exists") {
+          systemNotice("Account already exists. Try logging in.");
+        } else {
+          systemNotice("Something went wrong. Try again.");
+        }
+      })
+      .catch(() => systemNotice("Server error. Try again later."));
+  }
+
+  window.onload = () => {
+    checkCooldown();
+    const u = localStorage.getItem("username");
+    const a = localStorage.getItem("api");
+    if (u) document.getElementById("username").value = u;
+    if (a) document.getElementById("gmail").value = a;
+  };
+</script>
+</body>
+</html>

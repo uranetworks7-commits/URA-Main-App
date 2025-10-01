@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>URA Mini Game Zone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('game.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      text-align: center;
+    }
+    canvas {
+      background: rgba(30, 30, 30, 0.9);
+      display: none;
+      margin: 10px auto;
+      border-radius: 10px;
+    }
+    #score, #retryBtn {
+      display: none;
+    }
+    #score {
+      font-size: 22px;
+      margin-top: 10px;
+    }
+    button {
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #00c6ff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0072ff;
+    }
+    .gameBtn {
+      display: inline-block;
+      margin: 10px 5px;
+      background: #ff6a00;
+    }
+    .gameBtn:hover {
+      background: #ee0979;
+    }
+    .section { display: none; padding: 20px; }
+    #popup {
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(34, 34, 34, 0.95);
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 999;
+      width: 80%;
+      color: white;
+    }
+    #popup button {
+      margin-top: 15px;
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="padding: 15px;">🎮 URA Mini Game Zone</h1>
+
+  <div id="menu" class="section" style="display:block;">
+    <button class="gameBtn" onclick="startRunner()">🏃 Endless Runner</button>
+    <button class="gameBtn" onclick="showInfo('🐦 Flappy Clone (Not Available)', 'This game is  Not Available in Your Server,Check back later!')">🐦 Flappy Clone</button>
+    <button class="gameBtn" onclick="goTo('textg.html')">🏎️ Car Runner</button>
+  <button class="gameBtn" onclick="goTo('jet.html')">✈️ URA-Jets</button>
+  <button class="gameBtn" onclick="goTo('car.html')">💯3D Car Runner</button>
+  <button class="gameBtn" onclick="goTo('race.html')">🏁Bike Race </button> 
+<button class="gameBtn" onclick="goTo('sont.html')">💵Stock Market</button>
+  </div>
+
+  <div id="runnerSection" class="section">
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="400" height="300"></canvas>
+    <button id="retryBtn" onclick="restartRunner()">🔁 Retry Game</button>
+    <button onclick="goHome()">🏠 Back to Menu</button>
+  </div>
+
+  <div id="popup">
+    <h2 id="popupTitle"></h2>
+    <p id="popupMessage"></p>
+    <button onclick="hidePopup()">OK</button>
+  </div>
+
+  <script>
+    const scoreDiv = document.getElementById("score");
+    const retryBtn = document.getElementById("retryBtn");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let player, obstacles, frame, score, gameOver, anim;
+
+    function startRunner() {
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("runnerSection").style.display = "block";
+      canvas.style.display = "block";
+      scoreDiv.style.display = "block";
+
+      player = { x: 50, y: 220, width: 30, height: 30, vy: 0, gravity: 1.2, jump: -15 };
+      obstacles = [];
+      frame = 0;
+      score = 0;
+      gameOver = false;
+      gameLoop();
+    }
+
+    function restartRunner() {
+      cancelAnimationFrame(anim);
+      retryBtn.style.display = "none";
+      startRunner();
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = "#4CAF50";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacle(obs) {
+      ctx.fillStyle = "#f44336";
+      ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    }
+
+    function updatePlayer() {
+      player.vy += player.gravity;
+      player.y += player.vy;
+      if (player.y + player.height > canvas.height) {
+        player.y = canvas.height - player.height;
+        player.vy = 0;
+      }
+    }
+
+    function createObstacle() {
+      if (frame % 90 === 0) {
+        let height = Math.random() * 40 + 20;
+        obstacles.push({ x: canvas.width, y: canvas.height - height, width: 20, height: height });
+      }
+    }
+
+    function updateObstacles() {
+      obstacles.forEach(obs => obs.x -= 4);
+      obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
+    }
+
+    function detectCollision() {
+      for (let obs of obstacles) {
+        if (
+          player.x < obs.x + obs.width &&
+          player.x + player.width > obs.x &&
+          player.y < obs.y + obs.height &&
+          player.y + player.height > obs.y
+        ) {
+          gameOver = true;
+        }
+      }
+    }
+
+    function gameLoop() {
+      if (gameOver) {
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("💀 Game Over!", 130, canvas.height / 2 - 10);
+        retryBtn.style.display = "inline-block";
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      obstacles.forEach(drawObstacle);
+      updatePlayer();
+      createObstacle();
+      updateObstacles();
+      detectCollision();
+      frame++;
+      score++;
+      scoreDiv.innerText = "Score: " + score;
+      anim = requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.code === "Space" && player.y + player.height >= canvas.height) {
+        player.vy = player.jump;
+      }
+    });
+
+    canvas.addEventListener("click", () => {
+      if (player.y + player.height >= canvas.height) {
+        player.vy = player.jump;
+      }
+    });
+
+    function showInfo(title, message) {
+      document.getElementById("popupTitle").innerText = title;
+      document.getElementById("popupMessage").innerText = message;
+      document.getElementById("popup").style.display = "block";
+    }
+
+    function hidePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
+    function goHome() {
+      cancelAnimationFrame(anim);
+      document.getElementById("runnerSection").style.display = "none";
+      document.getElementById("menu").style.display = "block";
+      canvas.style.display = "none";
+      scoreDiv.style.display = "none";
+      retryBtn.style.display = "none";
+    }
+
+    function goTo(page) {
+      window.location.href = page;
+    }
+  </script>
+</body>
+</html>

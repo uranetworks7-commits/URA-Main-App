@@ -1,0 +1,18 @@
+{
+  "redeemRequests": {
+    "request_001": {
+      "username": "john_doe",
+      "amountRequested": 15000,
+      "rsValue": 15,
+      "status": "pending",
+      "requestTime": "2025-08-19T14:30:00Z"
+    },
+    "request_002": {
+      "username": "jane_doe",
+      "amountRequested": 30000,
+      "rsValue": 30,
+      "status": "approved",
+      "requestTime": "2025-08-19T15:00:00Z"
+    }
+  }
+}

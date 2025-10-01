@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors 1v1</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Fredoka One', cursive;
+  background: radial-gradient(circle at 30% 30%, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.screen { display: none; width: 100%; max-width: 500px; text-align: center; padding: 20px; }
+.active { display: block; }
+h2 { text-shadow: 0 0 10px #00fff7; }
+input { padding: 10px; font-size: 18px; border-radius: 15px; border: none; text-align: center; }
+.btn {
+  background: #00fff7;
+  color: #0f2027;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  margin: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: 0 5px 15px #00fff7aa;
+  transition: all 0.3s;
+}
+.btn:hover { transform: scale(1.1) rotate(-2deg); box-shadow: 0 8px 25px #00fff7ff; }
+
+.player-box {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #00fff7;
+  border-radius: 20px;
+  padding: 15px;
+  width: 45%;
+  display: inline-block;
+  vertical-align: top;
+  transition: all 0.3s;
+}
+.player-box:hover { transform: scale(1.05); box-shadow: 0 0 20px #00fff7; }
+.player-name { font-size: 22px; margin-bottom: 10px; }
+.player-score { font-size: 28px; margin-bottom: 10px; }
+
+.choices { margin: 20px 0; display: flex; justify-content: space-around; }
+.choices button {
+  font-size: 50px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: none;
+  background: #00fff7;
+  color: #0f2027;
+  cursor: pointer;
+  box-shadow: 0 5px 15px #00fff7aa;
+  transition: all 0.3s;
+}
+.choices button:hover { transform: scale(1.2); box-shadow: 0 10px 25px #00fff7ff; }
+
+.choice-display { display: flex; justify-content: space-between; margin: 20px 0; font-size: 70px; }
+#countdown { font-size: 28px; margin: 15px 0; animation: bounce 1s infinite; }
+.result {
+  font-size: 32px;
+  margin: 20px 0;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.5s;
+  text-shadow: 0 0 15px #00fff7, 0 0 30px #00fff7;
+}
+.result.show { opacity: 1; transform: scale(1.2); }
+
+@keyframes bounce { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+.reveal { animation: reveal 0.5s ease forwards; }
+@keyframes reveal { 0%{transform:scale(0);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+
+/* Custom Notification */
+#notice {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fffa00;
+  color: #0f2027;
+  font-weight: bold;
+  padding: 12px 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 999;
+}
+</style>
+</head>
+<body>
+<div id="notice">Notice 📢</div>
+
+<div id="nameScreen" class="screen active">
+  <h2>Enter Your Name</h2>
+  <input type="text" id="playerName" placeholder="Your Name">
+  <br><br>
+  <button class="btn" id="continueBtn">Continue</button>
+</div>
+
+<div id="modeScreen" class="screen">
+  <h2>Select Mode</h2>
+  <button class="btn" onclick="startBot()">Play with Bot</button>
+  <button class="btn" onclick="startOnline()">Play Online</button>
+</div>
+
+<div id="matchmakingScreen" class="screen">
+  <h2 id="matchStatus">Searching for Player…</h2>
+  <p id="timer">Time: 0s</p>
+  <button class="btn" onclick="cancelMatchmaking()">Cancel</button>
+</div>
+
+<div id="gameScreen" class="screen">
+  <div style="display:flex; justify-content: space-between;">
+    <div class="player-box">
+      <div class="player-name" id="p1Name">Player 1</div>
+      <div class="player-score" id="p1Score">0</div>
+    </div>
+    <div class="player-box">
+      <div class="player-name" id="p2Name">Player 2</div>
+      <div class="player-score" id="p2Score">0</div>
+    </div>
+  </div>
+  <div class="choices">
+    <button onclick="choose('rock')">🪨</button>
+    <button onclick="choose('paper')">📄</button>
+    <button onclick="choose('scissors')">✂️</button>
+  </div>
+  <div class="choice-display">
+    <span id="p1Choice">❔</span>
+    <span id="p2Choice">❔</span>
+  </div>
+  <p id="countdown"></p>
+  <p id="result" class="result"></p>
+</div>
+
+<div id="endScreen" class="screen">
+  <h2 id="endMessage"></h2>
+  <button class="btn" onclick="restart()">Restart</button>
+</div>
+
+<script type="module">
+// Attach the Continue (name screen) click handler ASAP
+document.getElementById("continueBtn").addEventListener("click", () => {
+  const input = document.getElementById("playerName").value.trim();
+  if (!input) { const n = document.getElementById("notice"); n.innerText = "📢 Please enter your name! ✍️"; n.style.display = "block"; setTimeout(()=>n.style.display="none",3000); return; }
+  window._playerName = input;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("modeScreen").classList.add("active");
+});
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, push, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDb_Go35lmQw0e7knv-XaVD20CsTibMHzY",
+  authDomain: "saude-game.firebaseapp.com",
+  databaseURL: "https://saude-game-default-rtdb.firebaseio.com",
+  projectId: "saude-game",
+  storageBucket: "saude-game.firebasestorage.app",
+  messagingSenderId: "340324142037",
+  appId: "1:340324142037:web:bcffd03bfacddc44714b5c"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ---- state ----
+let playerName = "", playerId = "", opponentId = "", matchKey = "";
+let scores = { me:0, opp:0 };
+let matchmakingInterval, seconds = 0, roundTimer = null;
+
+// ---- helpers ----
+function show(screen){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(screen).classList.add("active"); }
+function showNotice(msg){ const n=document.getElementById("notice"); n.innerText="📢 "+msg; n.style.display="block"; setTimeout(()=>n.style.display="none",3000); }
+function displayResult(msg){ const r=document.getElementById("result"); r.innerText=msg; r.classList.add("show"); setTimeout(()=>r.classList.remove("show"),2000); }
+function setChoicesPlaceholders(){ document.getElementById("p1Choice").innerText="❔"; document.getElementById("p2Choice").innerText="❔"; document.getElementById("countdown").innerText=""; document.getElementById("result").innerText=""; }
+
+// ----- Bot -----
+window.startBot = function(){
+  matchKey = ""; scores = { me:0, opp:0 }; setChoicesPlaceholders();
+  playerName = window._playerName || "";
+  show("gameScreen");
+  document.getElementById("p1Name").innerText = playerName || "You";
+  document.getElementById("p2Name").innerText = "Bot 🤖";
+  document.getElementById("p1Score").innerText = "0";
+  document.getElementById("p2Score").innerText = "0";
+}
+
+// ----- Online -----
+window.startOnline = function(){
+  playerName = window._playerName || "";
+  if (!playerName) { showNotice("Please enter your name! ✍️"); show("nameScreen"); return; }
+
+  show("matchmakingScreen");
+  playerId = Date.now().toString();
+  const matchRef = ref(db, "matches");
+
+  // Find a waiting match or create one
+  onValue(matchRef, async snap => {
+    if (matchKey) return;
+    const matches = snap.val(); let joined = false;
+
+    if (matches){
+      for (let key in matches){
+        const m = matches[key];
+        if (m.status === "waiting" && !m.players?.[playerId]){
+          opponentId = Object.keys(m.players)[0];
+          matchKey = key;
+
+          await update(ref(db, `matches/${key}/players/${playerId}`), { name: playerName, choice: "" });
+          await update(ref(db, `matches/${key}`), { status: "playing", ended: false });
+
+          clearInterval(matchmakingInterval);
+          startGameOnline({ players: { ...m.players, [playerId]: { name: playerName, choice: "" } } });
+          joined = true;
+          break;
+        }
+      }
+    }
+
+    if (!joined && !matchKey){
+      const newMatch = push(matchRef, { status: "waiting", ended: false, players: { [playerId]: { name: playerName, choice: "" } } });
+      matchKey = newMatch.key;
+      startMatchmakingTimer(matchKey);
+    }
+  }, { onlyOnce: true });
+}
+
+function startMatchmakingTimer(key){
+  seconds = 0;
+  matchmakingInterval = setInterval(()=>{
+    seconds++; document.getElementById("timer").innerText = "Time: " + seconds + "s";
+    if (seconds >= 120){ cancelMatchmaking(); showNotice("No Player Online. Try Again"); }
+  }, 1000);
+
+  // Wait for second player
+  onValue(ref(db, `matches/${key}`), snap => {
+    const data = snap.val(); if (!data) return;
+    const ids = Object.keys(data.players || {});
+    if (ids.length === 2 && data.status === "playing"){
+      clearInterval(matchmakingInterval);
+      opponentId = ids.find(id => id !== playerId);
+      if (opponentId && data.players[opponentId]) startGameOnline(data);
+    }
+  });
+}
+
+window.cancelMatchmaking = function(){
+  clearInterval(matchmakingInterval);
+  if (matchKey) remove(ref(db, "matches/" + matchKey));
+  matchKey = ""; show("modeScreen");
+}
+
+function startGameOnline(data){
+  scores = { me:0, opp:0 };
+  setChoicesPlaceholders();
+  show("gameScreen");
+
+  document.getElementById("p1Name").innerText = data.players[playerId].name;
+  document.getElementById("p2Name").innerText = data.players[opponentId].name;
+  document.getElementById("p1Score").innerText = "0";
+  document.getElementById("p2Score").innerText = "0";
+
+  listenForOpponentChoice();
+
+  // Unified results listener so BOTH see the same thing
+  onValue(ref(db, `matches/${matchKey}/lastResult`), snap => {
+    const result = snap.val();
+    if (!result) return;
+
+    // Update scores UI from server payload
+    const myScore = result.scores?.[playerId] ?? 0;
+    const oppScore = result.scores?.[opponentId] ?? 0;
+    document.getElementById("p1Score").innerText = String(myScore);
+    document.getElementById("p2Score").innerText = String(oppScore);
+
+    // Per-player message from payload
+    if (result.message?.[playerId]) displayResult(result.message[playerId]);
+
+    // Terminated due to no response (both or one)
+    if (result.terminated){
+      endGame("Match Terminated ⏳");
+      return;
+    }
+
+    // Match finished?
+    if (result.final){
+      endGame(result.winnerName + " Wins the Match 🏆");
+      return;
+    }
+  });
+
+  showNotice("Match Found! Game Started 🎮");
+}
+
+// ----- Gameplay -----
+window.choose = function(choice) {
+  setChoicesPlaceholders();
+
+  const steps = ["Rock...", "Paper...", "Scissors...", "Shoot!"];
+  let i = 0;
+  const countdownInterval = setInterval(() => {
+    document.getElementById("countdown").innerText = steps[i];
+    i++;
+    if (i >= steps.length) {
+      clearInterval(countdownInterval);
+
+      // Bot Mode Logic
+      if (!matchKey) {
+        const botChoices = ["rock", "paper", "scissors"];
+        const botChoice = botChoices[Math.floor(Math.random() * botChoices.length)];
+
+        revealChoices(choice, botChoice);
+
+        let resultText = "";
+        
+        if (choice === botChoice) {
+          resultText = "Draw 🤝";
+        } else if (
+          (choice === "rock" && botChoice === "scissors") ||
+          (choice === "paper" && botChoice === "rock") ||
+          (choice === "scissors" && botChoice === "paper")
+        ) {
+          resultText = "You Win 🎉";
+          scores.me++;
+        } else {
+          resultText = "You Lose ❌";
+          scores.opp++;
+        }
+
+        document.getElementById("p1Score").innerText = scores.me;
+        document.getElementById("p2Score").innerText = scores.opp;
+        displayResult(resultText);
+      } else {
+        // Online Mode Logic (from your original code)
+        set(ref(db, `matches/${matchKey}/players/${playerId}/choice`), choice);
+        startRoundTimer();
+      }
+    }
+  }, 800);
+};
+
+// ---- 30s non-response logic ----
+function startRoundTimer(){
+  if (roundTimer) clearTimeout(roundTimer);
+
+  roundTimer = setTimeout(async ()=>{
+    const mySnap = await get(ref(db, `matches/${matchKey}/players/${playerId}/choice`));
+    const oppSnap = await get(ref(db, `matches/${matchKey}/players/${opponentId}/choice`));
+
+    const myChoice = mySnap.val();
+    const oppChoice = oppSnap.val();
+
+    // Build result payload for BOTH players
+    let msgMe = "", msgOpp = "", winnerId = "", winnerName = "", terminated = false, isFinal = false;
+
+    if (!myChoice && !oppChoice){
+      // Both failed to choose → Match terminated (both lose)
+      terminated = true;
+      msgMe = "You Lose ❌ Timeout! The game is over.";
+      msgOpp = "You Lose ❌ Timeout! The game is over.";
+      isFinal = true;
+    } else if (!myChoice && oppChoice){
+      // I didn't choose, opponent did → I lose this round
+      scores.opp++;
+      winnerId = opponentId;
+      winnerName = document.getElementById("p2Name").innerText;
+      msgMe = "You Lose ❌ Timeout! Opponent Wins.";
+      msgOpp = "You Win ✅ Your opponent timed out.";
+    } else if (myChoice && !oppChoice){
+      // I chose, opponent didn't → I win this round
+      scores.me++;
+      winnerId = playerId;
+      winnerName = document.getElementById("p1Name").innerText;
+      msgMe = "You Win ✅ Opponent timed out.";
+      msgOpp = "You Lose ❌ Timeout! Your opponent wins.";
+    } else {
+      // Both already chose within 30s → do nothing, normal flow handles it
+      return;
+    }
+
+    if (!terminated){
+        isFinal = (scores.me >= 3 || scores.opp >= 3);
+    }
+    const finalWinnerName = (scores.me >= 3) ? document.getElementById("p1Name").innerText
+                         : (scores.opp >= 3) ? document.getElementById("p2Name").innerText
+                         : "Nobody";
+
+    // Push unified result so BOTH see it
+    await set(ref(db, `matches/${matchKey}/lastResult`), {
+      winner: terminated ? "draw" : winnerId,
+      winnerName: terminated ? "Nobody" : finalWinnerName,
+      scores: { [playerId]: scores.me, [opponentId]: scores.opp },
+      message: { [playerId]: msgMe, [opponentId]: msgOpp },
+      terminated: terminated,
+      final: isFinal
+    });
+
+    if (!terminated){
+      // Reset choices for the next round
+      await set(ref(db, `matches/${matchKey}/players/${playerId}/choice`), "");
+      await set(ref(db, `matches/${matchKey}/players/${opponentId}/choice`), "");
+    }
+  }, 30000);
+}
+
+function listenForOpponentChoice(){
+  // When opponent posts a choice, if I also chose, we resolve the round and broadcast ONE result
+  onValue(ref(db, `matches/${matchKey}/players/${opponentId}/choice`), async snap => {
+    const oppChoice = snap.val();
+    if (!oppChoice) return;
+
+    const mySnap = await get(ref(db, `matches/${matchKey}/players/${playerId}/choice`));
+    const myChoice = mySnap.val();
+    if (!myChoice){
+      document.getElementById("result").innerText = "Please wait for opponent…";
+      return;
+    }
+
+    // Both chose → reveal and score
+    revealChoices(myChoice, oppChoice);
+    if (roundTimer) clearTimeout(roundTimer);
+
+    // Compute outcome
+    let msgMe="", msgOpp="", winnerId="", winnerName="";
+    if (myChoice === oppChoice){
+      winnerId = "draw"; winnerName = "Nobody";
+      msgMe = "Draw 🤝"; msgOpp = "Draw 🤝";
+    } else if (
+      (myChoice === "rock" && oppChoice === "scissors") ||
+      (myChoice === "paper" && oppChoice === "rock") ||
+      (myChoice === "scissors" && oppChoice === "paper")
+    ){
+      scores.me++; winnerId = playerId; winnerName = document.getElementById("p1Name").innerText;
+      msgMe = "You Win 🎉"; msgOpp = "You Lose ❌";
+    } else {
+      scores.opp++; winnerId = opponentId; winnerName = document.getElementById("p2Name").innerText;
+      msgMe = "You Lose ❌"; msgOpp = "You Win 🎉";
+    }
+
+    const isFinal = (scores.me >= 3 || scores.opp >= 3);
+
+    // Broadcast unified result (so BOTH see the same thing)
+    await set(ref(db, `matches/${matchKey}/lastResult`), {
+      winner: winnerId,
+      winnerName: winnerName,
+      scores: { [playerId]: scores.me, [opponentId]: scores.opp },
+      message: { [playerId]: msgMe, [opponentId]: msgOpp },
+      terminated: false,
+      final: isFinal
+    });
+
+    // Reset choices for next round (do NOT remove match yet)
+    await set(ref(db, `matches/${matchKey}/players/${playerId}/choice`), "");
+    await set(ref(db, `matches/${matchKey}/players/${opponentId}/choice`), "");
+  });
+}
+
+function revealChoices(myChoice, oppChoice){
+  document.getElementById("p1Choice").innerText = getEmoji(myChoice);
+  document.getElementById("p2Choice").innerText = getEmoji(oppChoice);
+  document.getElementById("p1Choice").classList.add("reveal");
+  document.getElementById("p2Choice").classList.add("reveal");
+  setTimeout(() => {
+    document.getElementById("p1Choice").classList.remove("reveal");
+    document.getElementById("p2Choice").classList.remove("reveal");
+  }, 500);
+}
+function getEmoji(c){ return c==="rock"?"🪨":c==="paper"?"📄":c==="scissors"?"✂️":"❔"; }
+
+// End game for BOTH (don’t delete immediately so other client sees result)
+function endGame(msg){
+  show("endScreen");
+  document.getElementById("endMessage").innerText = msg;
+
+  if (matchKey){
+    // Mark ended in DB; keep node briefly so the other client gets the final state
+    update(ref(db, `matches/${matchKey}`), { status: "ended", ended: true, endMessage: msg });
+
+    // Optional: clean up after a short delay (safe window)
+    setTimeout(() => {
+      // Only attempt removal if the room still exists (ignore errors)
+      remove(ref(db, "matches/" + matchKey)).catch(()=>{});
+    }, 8000);
+  }
+}
+
+window.restart = function(){
+  scores = { me:0, opp:0 };
+  matchKey = "";
+  setChoicesPlaceholders();
+  show("nameScreen");
+  document.getElementById("p1Score").innerText = "0";
+  document.getElementById("p2Score").innerText = "0";
+};
+
+</script>
+</body>
+</html>

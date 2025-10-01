@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Gift Box 🎁</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.6/lottie.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('gift.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      text-align: center;
+      overflow-x: hidden;
+    }
+    .page {
+      display: none;
+      padding: 30px 10px;
+    }
+    .active {
+      display: block;
+    }
+    #boxAnimation, #loadingAnimation {
+      width: 90%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .btn {
+      margin-top: 20px;
+      padding: 15px 25px;
+      background: linear-gradient(45deg, #00ffe1, #0077ff);
+      border: none;
+      border-radius: 20px;
+      color: black;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 15px cyan;
+    }
+    .btn:disabled {
+      background: grey;
+      color: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #resultBox {
+      display: none;
+      padding: 20px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 15px;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    #rewardCode {
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 15px 0;
+      color: yellow;
+    }
+    #copyBtn {
+      padding: 8px 16px;
+      font-size: 1em;
+      background: #ffeb3b;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #toast {
+      display: none;
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00ffe1;
+      color: black;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #000;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎁 Open Your Gift Box 🎁</h2>
+  <div id="mainPage" class="page active">
+    <div id="boxAnimation"></div>
+    <button id="openBtn" class="btn">Open Box</button>
+    <p id="statusText"></p>
+  </div>
+  <div id="loadingPage" class="page">
+    <div id="loadingAnimation"></div>
+  </div>
+  <div id="resultPage" class="page">
+    <div id="resultBox">
+      <h3 id="finalMsg"></h3>
+      <div id="rewardCode"></div>
+      <button id="copyBtn" style="display:none;">Copy Code</button>
+    </div>
+  </div>
+  <div id="toast">✅ Code Copied!</div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbZMX-F3dltZifBO2cqYM-n3m3VWWZtgw",
+      authDomain: "box-open-928e0.firebaseapp.com",
+      databaseURL: "https://box-open-928e0-default-rtdb.firebaseio.com",
+      projectId: "box-open-928e0",
+      storageBucket: "box-open-928e0.appspot.com",
+      messagingSenderId: "1095500430626",
+      appId: "1:1095500430626:web:9b4c36b28c6739062a397b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const username = localStorage.getItem("username") || "guest";
+    const openBtn = document.getElementById("openBtn");
+    const statusText = document.getElementById("statusText");
+    const resultBox = document.getElementById("resultBox");
+    const finalMsg = document.getElementById("finalMsg");
+    const rewardCode = document.getElementById("rewardCode");
+    const copyBtn = document.getElementById("copyBtn");
+    const toast = document.getElementById("toast");
+
+    const boxAnim = lottie.loadAnimation({
+      container: document.getElementById("boxAnimation"),
+      renderer: 'svg',
+      loop: true,
+      autoplay: false,
+      path: 'Empty Box - Empty Search.json'
+    });
+
+    const loadAnim = lottie.loadAnimation({
+      container: document.getElementById("loadingAnimation"),
+      renderer: 'svg',
+      loop: true,
+      autoplay: false,
+      path: 'Programming (1).json'
+    });
+
+    let eventId = "";
+
+    async function checkStatus() {
+      const snap = await db.ref("eventStatus").once("value");
+      const val = snap.val();
+      if (val && val.status === "ON") {
+        eventId = val.eventId;
+        const already = await db.ref(`${eventId}/spins/${username}`).once("value");
+        if (already.exists()) {
+          showResult(already.val().result, already.val().code);
+          openBtn.disabled = true;
+          openBtn.innerText = "You have already Spin";
+        } else {
+          openBtn.disabled = false;
+          boxAnim.play();
+        }
+      } else {
+        statusText.innerText = "🚫 No Active Event Right Now 🫢";
+        openBtn.disabled = true;
+      }
+    }
+
+    openBtn.addEventListener("click", async () => {
+      const checkSpin = await db.ref(`${eventId}/spins/${username}`).once("value");
+      if (checkSpin.exists()) {
+        showResult(checkSpin.val().result, checkSpin.val().code);
+        openBtn.disabled = true;
+        openBtn.innerText = "You have already Spin";
+        return;
+      }
+
+      document.getElementById("mainPage").classList.remove("active");
+      document.getElementById("loadingPage").classList.add("active");
+      loadAnim.play();
+
+      setTimeout(async () => {
+        loadAnim.stop();
+        document.getElementById("loadingPage").classList.remove("active");
+        document.getElementById("resultPage").classList.add("active");
+
+        const winChance = Math.random();
+        if (winChance < 0.33) {
+          const codeRef = db.ref(`${eventId}/codes/available`);
+          let assignedCode = null;
+
+          await codeRef.transaction((codes) => {
+            if (codes && codes.length > 0) {
+              assignedCode = codes[0];
+              codes.splice(0, 1);
+              return codes;
+            }
+            return codes;
+          }, async (error, committed, snapshot) => {
+            if (error || !committed || !assignedCode) {
+              await db.ref(`${eventId}/spins/${username}`).set({ result: "NoCodes" });
+              showResult("NoCodes", "");
+            } else {
+              const spinsSnap = await db.ref(`${eventId}/spins`).once("value");
+              const alreadyUsed = Object.values(spinsSnap.val() || {}).some(
+                spin => spin.code === assignedCode
+              );
+
+              if (alreadyUsed) {
+                await db.ref(`${eventId}/spins/${username}`).set({ result: "Lose" });
+                showResult("Lose", "");
+              } else {
+                await db.ref(`${eventId}/spins/${username}`).set({ result: "Win", code: assignedCode });
+                await db.ref(`${eventId}/codes/used`).push(assignedCode);
+                showResult("Win", assignedCode);
+              }
+            }
+          });
+        } else {
+          await db.ref(`${eventId}/spins/${username}`).set({ result: "Lose" });
+          showResult("Lose", "");
+        }
+      }, 8000);
+    });
+
+    function showResult(result, code) {
+      document.getElementById("mainPage").classList.remove("active");
+      document.getElementById("loadingPage").classList.remove("active");
+      document.getElementById("resultPage").classList.add("active");
+      resultBox.style.display = "block";
+      if (result === "Win") {
+        finalMsg.innerHTML = "🎉 Congratulations! You Win! , Claim Quickly, May Be Fault";
+        rewardCode.innerText = code;
+        copyBtn.style.display = "inline-block";
+      } else if (result === "Lose") {
+        finalMsg.innerHTML = "😔 Not Good Luck! Try Next Time.";
+      } else {
+        finalMsg.innerHTML = "😐 No Codes Available 🫵";
+      }
+    }
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(rewardCode.innerText).then(() => {
+        toast.style.display = "block";
+        setTimeout(() => toast.style.display = "none", 2000);
+      });
+    };
+
+    window.onload = checkStatus;
+  </script>
+</body>
+</html>

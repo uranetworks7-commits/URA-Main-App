@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stylish Compact Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    background: url('jj2.png') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .menu-container {
+    background: rgba(255 255 255 / 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    width: 95%;
+    max-width: 700px;
+    box-shadow:
+      0 6px 20px rgba(31, 38, 135, 0.3),
+      0 0 0 1px rgba(255 255 255 / 0.15);
+  }
+
+  .menu-button {
+    background: linear-gradient(145deg, #6e8efb, #a777e3);
+    border: none;
+    border-radius: 15px;
+    width: 140px;
+    height: 120px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    cursor: pointer;
+    box-shadow:
+      0 5px 10px rgba(110, 142, 251, 0.5),
+      0 0 8px rgba(167, 119, 227, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      background 0.4s ease;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    padding: 8px;
+    word-wrap: break-word;
+  }
+
+  .menu-button img {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+  }
+
+  .menu-button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(145deg, #a777e3, #6e8efb);
+    box-shadow:
+      0 10px 18px rgba(167, 119, 227, 0.7),
+      0 0 15px rgba(110, 142, 251, 0.9);
+  }
+
+  .menu-button:hover img {
+    transform: rotate(6deg) scale(1.05);
+  }
+
+  /* Small screen fix */
+  @media (max-width: 600px) {
+    .menu-container {
+      flex-direction: column;
+      gap: 12px;
+      padding: 15px;
+    }
+    .menu-button {
+      width: 100%;
+      max-width: 220px;
+      height: 100px;
+      font-size: 13px;
+    }
+    .menu-button img {
+      width: 40px;
+      height: 40px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="menu-container" role="navigation" aria-label="Main menu">
+    <button class="menu-button" onclick="location.href='game.html'" aria-label="Go to Music page">
+      <img src="gamex.png" alt="Music icon" />
+      Offline Games
+    </button>
+<button class="menu-button" onclick="location.href='ram.html'" aria-label="Go to Game page">
+      <img src="ram.png" alt="Game icon" />
+      1 Vs 1 Arena Pro 
+    </button>
+    <button class="menu-button" onclick="location.href='game25.html'" aria-label="Go to Game page">
+      <img src="game25x.png" alt="Game icon" />
+      1 Vs 1 Online Custom<br>
+    </button>
+    <button class="menu-button" onclick="location.href='tic.html'" aria-label="Go to Game page">
+      <img src="ticx.png" alt="Game icon" />
+      Tic Tac Toe<br>(1 Vs 1)
+    </button>
+    <button class="menu-button" onclick="location.href='card.html'" aria-label="Go to Game page">
+      <img src="cardx.png" alt="Game icon" />
+      Memory Card<br>(1 Vs 1 Online)
+    </button>
+  
+<button class="menu-button" onclick="location.href='rock.html'" aria-label="Go to Game page">
+      <img src="rock.png" alt="Game icon" />
+      Rock Paper & Cutter 
+    </button>
+  </div>
+</body>
+</html>

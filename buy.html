@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>My App - Buy Plans</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff;
+      color: #222;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .chrome-bar {
+      height: 44px;
+      background: #f2f2f2;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+    }
+    .chrome-circle {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #f44;
+      box-shadow: 20px 0 #fc3, 40px 0 #4c4;
+    }
+    .address-bar {
+      background: #fff;
+      border-radius: 12px;
+      flex-grow: 1;
+      padding: 6px 12px;
+      font-size: 14px;
+      color: #555;
+      user-select: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .container {
+      max-width: 480px;
+      margin: 20px auto 60px;
+      padding: 0 16px;
+      text-align: center;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+    }
+    button.buy-btn {
+      display: block;
+      width: 100%;
+      background: #1a73e8;
+      border: none;
+      color: white;
+      font-size: 1.3rem;
+      padding: 16px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgb(26 115 232 / 0.4);
+      transition: background 0.3s ease;
+      margin-bottom: 32px;
+    }
+    button.buy-btn:hover {
+      background: #155ab6;
+    }
+
+    /* Tablet style Horse Fire Ad block */
+    .ad-block {
+      width: 100%;
+      max-width: 480px;
+      height: 320px;
+      background: linear-gradient(135deg, #222, #f44336);
+      border-radius: 20px;
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 6px 30px rgba(244, 67, 54, 0.7);
+      user-select: none;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .ad-block img {
+      max-width: 180px;
+      margin-bottom: 16px;
+      object-fit: contain;
+    }
+    .ad-block .ad-title {
+      font-size: 3rem;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    .ad-block .ad-subtitle {
+      font-size: 1.4rem;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+
+    /* Modal backdrop */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.48);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 360px;
+      width: 90%;
+      padding: 24px 20px;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+      text-align: center;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      font-weight: 700;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+    }
+    .plan-btn {
+      width: 100%;
+      padding: 14px 0;
+      margin: 10px 0;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      border: none;
+      background: #1a73e8;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .plan-btn:hover {
+      background: #155ab6;
+    }
+    .cancel-btn {
+      margin-top: 12px;
+      background: #e74c3c;
+      box-shadow: 0 4px 10px rgb(231 76 60 / 0.5);
+    }
+    .cancel-btn:hover {
+      background: #b33226;
+    }
+    input.code-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 16px;
+    }
+    button.confirm-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 0;
+      width: 100%;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgb(40 167 69 / 0.5);
+    }
+    button.confirm-btn:hover {
+      background: #1e7e34;
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #eee;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 1rem;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10000;
+    }
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #1a73e8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 1.6rem;
+      font-weight: 700;
+      z-index: 100000;
+      user-select: none;
+    }
+    /* Spinner */
+    .spinner {
+      margin-top: 20px;
+      width: 48px;
+      height: 48px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  Redirecting site...
+  <div class="spinner"></div>
+</div>
+
+<!-- Fake Chrome top bar -->
+<div class="chrome-bar" aria-label="Browser address bar">
+  <div class="chrome-circle" aria-hidden="true"></div>
+  <div class="address-bar" aria-live="polite" aria-atomic="true" aria-relevant="additions">https://URA-App-9X78/Net.Store.com/buy</div>
+</div>
+
+<!-- Page content -->
+<div class="container" id="pageContent" style="display:none;">
+  <h1>Choose Your Plan</h1>
+  <button class="buy-btn" id="buyBtn">Buy</button>
+
+  <div class="ad-block" aria-label="Advertisement">
+    <img src="horse.png" alt="Horse Fire Logo" />
+    <div class="ad-title">1 X Bet</div>
+    <div class="ad-subtitle">Try Now (Free Service )  ad</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="planModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content" id="modalContent">
+    <h2 id="modalTitle">Select a Plan</h2>
+    <button class="plan-btn" data-plan="₹156 / Month">₹156 / Month</button>
+    <button class="plan-btn" data-plan="₹29 / Month">₹29 / Month</button>
+    <button class="plan-btn cancel-btn">Cancel</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // Show loading for 2.5 seconds then show content
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('pageContent').style.display = 'block';
+    }, 2500);
+  });
+
+  const buyBtn = document.getElementById('buyBtn');
+  const modal = document.getElementById('planModal');
+  const modalContent = document.getElementById('modalContent');
+  const toast = document.getElementById('toast');
+
+  buyBtn.addEventListener('click', () => {
+    showPlanSelection();
+  });
+
+  function showPlanSelection() {
+    modalContent.innerHTML = `
+      <h2 id="modalTitle">Select a Plan</h2>
+      <button class="plan-btn" data-plan="₹156 / Month">₹156 / Month</button>
+      <button class="plan-btn" data-plan="₹29 / Month">₹29 / Month</button>
+      <button class="plan-btn cancel-btn">Cancel</button>
+    `;
+    modal.classList.add('show');
+
+    modalContent.querySelectorAll('.plan-btn').forEach(btn => {
+      if (btn.textContent === 'Cancel') {
+        btn.addEventListener('click', () => {
+          modal.classList.remove('show');
+        });
+      } else {
+        btn.addEventListener('click', () => {
+          askForCode(btn.dataset.plan);
+        });
+      }
+    });
+  }
+
+  function askForCode(plan) {
+    modalContent.innerHTML = `
+      <h2 id="modalTitle">Enter Code for ${plan}</h2>
+      <input type="password" id="codeInput" class="code-input" placeholder="Enter code here" autofocus />
+      <button class="confirm-btn">Confirm</button>
+      <button class="plan-btn cancel-btn">Back</button>
+    `;
+
+    modalContent.querySelector('.confirm-btn').addEventListener('click', () => {
+      const codeInput = document.getElementById('codeInput').value.trim();
+      if (codeInput === '6776') {
+        showToast(`✅ Purchase Successful for ${plan}`);
+        modal.classList.remove('show');
+      } else {
+        showToast('❌ Incorrect Code. Please try again.');
+      }
+    });
+
+    modalContent.querySelector('.cancel-btn').addEventListener('click', () => {
+      showPlanSelection();
+    });
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('show');
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stylish Professional Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    background: url('jj2.png') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .menu-container {
+    background: rgba(255 255 255 / 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 25px;
+    padding: 50px 70px;
+    display: flex;
+    gap: 50px;
+    box-shadow:
+      0 8px 32px 0 rgba(31, 38, 135, 0.37),
+      0 0 0 1px rgba(255 255 255 / 0.18);
+  }
+
+  .menu-button {
+    background: linear-gradient(145deg, #6e8efb, #a777e3);
+    border: none;
+    border-radius: 20px;
+    width: 200px;
+    height: 200px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow:
+      0 10px 20px rgba(110, 142, 251, 0.7),
+      0 0 15px rgba(167, 119, 227, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      background 0.4s ease;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  .menu-button img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 18px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+  }
+
+  .menu-button:hover {
+    transform: scale(1.12);
+    background: linear-gradient(145deg, #a777e3, #6e8efb);
+    box-shadow:
+      0 15px 30px rgba(167, 119, 227, 0.9),
+      0 0 25px rgba(110, 142, 251, 1);
+  }
+
+  .menu-button:hover img {
+    transform: rotate(10deg) scale(1.05);
+  }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .menu-container {
+      flex-direction: column;
+      padding: 30px 40px;
+      gap: 30px;
+    }
+    .menu-button {
+      width: 160px;
+      height: 160px;
+      font-size: 20px;
+    }
+    .menu-button img {
+      width: 65px;
+      height: 65px;
+      margin-bottom: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="menu-container" role="navigation" aria-label="Main menu">
+    <button class="menu-button" onclick="location.href='bit.html'" aria-label="Go to Music page">
+      <img src="bit.png" alt="Music icon" />
+      Bitcoin Trading 
+    </button>
+    
+  <button class="menu-button" onclick="location.href='rrr.html'" aria-label="Go to Game page">
+      <img src="rrrx.png" alt="Game icon" />
+      Legendary Ai Spin 
+    </button>
+  </div>
+</body>
+</html>

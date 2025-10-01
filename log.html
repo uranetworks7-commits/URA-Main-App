@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Loader</title>
+  <style>
+    body,html {
+      margin:0;
+      padding:0;
+      height:100%;
+      width:100%;
+      overflow:hidden;
+      background:#000;
+      color:#fff;
+      font-family:Arial, sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    iframe {
+      width:100%;
+      height:100%;
+      border:none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login iframe -->
+  <iframe id="appFrame" src="https://ura-login.netlify.app"></iframe>
+
+  <script>
+    const frame = document.getElementById("appFrame");
+
+    // 🔹 Listen for messages from login system
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+
+      if (!data || !data.type) return;
+
+      if (data.type === "loginSuccess") {
+        // Save login data to localStorage
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("api", data.api);
+        localStorage.setItem("successKey", "true");
+
+        // Open main.html
+        window.open("main.html", "_self");
+      }
+    });
+
+    // 🔹 Background monitor (security check every 2s)
+    setInterval(() => {
+      const success = localStorage.getItem("successKey");
+
+      if (!success && window.location.pathname.endsWith("main.html")) {
+        // User lost successKey → force logout
+        alert("Session expired. Please login again.");
+        window.location.href = "loader.html";
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Royal Luxury Spin — 5 per day</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg-1: #fffdf8;
+    --bg-2: #fff8ec;
+    --gold-1: #d4af37;
+    --gold-2: #f7d36b;
+    --accent: #8b6b2e;
+    --muted: #6b6b6b;
+    --glass: rgba(255,255,255,0.7);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background: radial-gradient(800px 400px at 20% 10%, #fff9ee 0%, transparent 30%),
+                radial-gradient(800px 600px at 80% 90%, #fff6e6 0%, transparent 30%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #2b2b2b;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+  }
+
+  /* App shell */
+  .app {
+    width:min(980px,96vw);
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:22px;
+    align-items:start;
+  }
+
+  /* Left card (wheel) */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.80));
+    border-radius:20px;
+    padding:20px;
+    box-shadow: 0 12px 40px rgba(80,60,30,0.08), 0 6px 18px rgba(0,0,0,0.04);
+    border: 1px solid rgba(160,130,60,0.08);
+  }
+
+  .brand {
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:20px;
+    color:var(--accent);
+    letter-spacing:0.6px;
+  }
+  .subtitle { color:var(--muted); font-size:13px; margin-top:6px }
+
+  .wheel-wrap {
+    margin-top:18px;
+    width:360px; height:360px; display:flex; align-items:center; justify-content:center; position:relative;
+  }
+
+  canvas#wheel {
+    width:340px; height:340px; border-radius:50%;
+    box-shadow: 0 18px 40px rgba(133,109,47,0.08), inset 0 12px 30px rgba(255,255,255,0.6);
+    background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.38), transparent 12%);
+    transform: translateZ(0);
+  }
+
+  /* shimmering gold rim */
+  .rim {
+    position:absolute; width:380px; height:380px; border-radius:50%; pointer-events:none;
+    background: conic-gradient(from 0deg, rgba(212,175,55,0.95), rgba(247,211,107,0.9), rgba(212,175,55,0.95));
+    filter: blur(8px) saturate(1.2);
+    opacity:0.15; z-index:2;
+  }
+
+  /* pointer - top center */
+  .pointer {
+    position:absolute; top:-16px; left:50%; transform:translateX(-50%) rotate(0deg);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-bottom:40px solid var(--gold-1);
+    filter: drop-shadow(0 8px 18px rgba(150,110,40,0.25));
+    z-index:10;
+  }
+  .pointer:after{
+    content:""; position:absolute; left:50%; transform:translateX(-50%); top:-28px;
+    width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.9);
+    box-shadow:0 0 10px rgba(255,255,255,0.9);
+  }
+
+  /* Right panel */
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.88));
+    border-radius:20px; padding:20px;
+    box-shadow: 0 12px 40px rgba(80,60,30,0.06);
+    border:1px solid rgba(160,130,60,0.06);
+  }
+
+  .panel h2 {
+    font-family:'Playfair Display', serif;
+    margin:0; color:var(--accent); font-size:20px;
+  }
+  .info-row { display:flex; justify-content:space-between; margin-top:12px; align-items:center; gap:8px }
+  .muted { color:var(--muted); font-size:13px }
+
+  .spin-btn {
+    margin-top:18px;
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold-1));
+    color:#2b1f00; border:0; padding:12px 22px; border-radius:12px;
+    font-weight:700; cursor:pointer; box-shadow: 0 10px 30px rgba(212,175,55,0.14);
+    transition: transform .12s ease, box-shadow .12s ease;
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+  }
+  .spin-btn:active{ transform:translateY(1px) }
+  .spin-btn[disabled]{ opacity:0.6; cursor:not-allowed; transform:none; box-shadow:none }
+
+  .countdown { margin-top:12px; font-family:'Inter',sans-serif; color:var(--muted); }
+
+  /* modal */
+  .modal-back {
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background: rgba(20,18,10,0.55); z-index:9999; backdrop-filter: blur(4px);
+  }
+  .modal {
+    width:min(92vw,540px);
+    background: linear-gradient(180deg, #fff, #f8f5ee);
+    border-radius:14px; padding:18px; border:2px solid rgba(160,130,60,0.2);
+    box-shadow: 0 30px 80px rgba(80,60,20,0.18);
+  }
+  .modal h3 { margin:0; font-family:'Playfair Display',serif; color:var(--accent); }
+  .modal p { color:#333; margin-top:8px; }
+  .key-box { margin-top:14px; padding:12px; border-radius:10px; background:linear-gradient(90deg,#fff7ea,#fff3d6); border:1px solid rgba(160,130,60,0.06); display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .key { font-family:'Inter', sans-serif; font-weight:700; color:var(--accent); letter-spacing:0.6px }
+  .copy-btn { background:var(--gold-1); border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; color:#2b1f00 }
+
+  /* small helpers */
+  .muted-note { font-size:12px; color:var(--muted); margin-top:10px }
+  @media (max-width:840px){
+    .app { grid-template-columns: 1fr; }
+    .wheel-wrap { justify-content:center }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- LEFT: wheel -->
+  <div class="card">
+    <div class="brand">Ai Tec Spin • UtkarshX  Edition</div>
+    <div class="subtitle">5 spins per day • 1% chance to win</div>
+
+    <div class="wheel-wrap" aria-hidden="false">
+      <div class="rim"></div>
+      <div class="pointer" aria-hidden="true"></div>
+      <canvas id="wheel" width="700" height="700" style="width:340px;height:340px;"></canvas>
+    </div>
+
+    <div class="muted-note">Premium key revealed on win — keep it private.</div>
+  </div>
+
+  <!-- RIGHT: controls -->
+  <div class="panel">
+    <h2>Your Spins</h2>
+
+    <div class="info-row">
+      <div class="muted">Spins remaining today</div>
+      <div id="spinsLeft" style="font-weight:800; font-family:'Inter',sans-serif; color:var(--accent)"></div>
+    </div>
+
+    <div class="info-row">
+      <div class="muted">Last spin</div>
+      <div id="lastSpin" class="muted">—</div>
+    </div>
+
+    <div class="info-row">
+      <div class="muted">Status</div>
+      <div id="status" class="muted">Ready</div>
+    </div>
+
+    <button id="spinBtn" class="spin-btn" aria-label="Spin button">🎯 Spin</button>
+
+    <div id="countdown" class="countdown"></div>
+    <div class="muted-note">This is client-side demo — for production, integrate server verification.</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modalBackdrop" class="modal-back" role="dialog" aria-hidden="true">
+  <div class="modal" role="document" aria-live="polite">
+    <h3 id="modalTitle">Result</h3>
+    <p id="modalText">...</p>
+
+    <div id="modalKeyWrap" class="key-box" style="display:none">
+      <div class="key" id="modalKey">AI.MMC.Net.FMKHFDGUH</div>
+      <button id="modalCopy" class="copy-btn">Copy</button>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <button id="modalClose" style="background:transparent;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--muted)">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== Luxury Royal Spin — JS ======
+   - 5 spins per local day (YYYY-MM-DD)
+   - Smooth canvas spin with easing (slow ~8s)
+   - 1% win probability
+   - Custom modal + copy button on win
+   ================================== */
+
+const CANVAS = document.getElementById('wheel');
+const ctx = CANVAS.getContext('2d', { alpha: true });
+const SPIN_BTN = document.getElementById('spinBtn');
+const SPINS_LEFT = document.getElementById('spinsLeft');
+const LAST_SPIN = document.getElementById('lastSpin');
+const STATUS = document.getElementById('status');
+const COUNTDOWN = document.getElementById('countdown');
+
+const MODAL = document.getElementById('modalBackdrop');
+const MODAL_TITLE = document.getElementById('modalTitle');
+const MODAL_TEXT = document.getElementById('modalText');
+const MODAL_KEY_WRAP = document.getElementById('modalKeyWrap');
+const MODAL_KEY = document.getElementById('modalKey');
+const MODAL_COPY = document.getElementById('modalCopy');
+const MODAL_CLOSE = document.getElementById('modalClose');
+
+const SEGMENTS = 12;                // decorative segments
+const WIN_PROB = 0.007;             // 1% win
+const MAX_SPINS_PER_DAY = 5;
+const STORAGE_KEY = 'royal_spin_data_v1'; // { date: 'YYYY-MM-DD', used: n, last: ts }
+const WIN_KEY = 'AI.MMC.Net.FMKHFDGUH';
+
+// canvas scaling for crispness
+function resizeCanvas() {
+  const cssW = CANVAS.clientWidth;
+  const cssH = CANVAS.clientHeight;
+  const ratio = window.devicePixelRatio || 1;
+  CANVAS.width = Math.round(cssW * ratio);
+  CANVAS.height = Math.round(cssH * ratio);
+  CANVAS.style.width = cssW + 'px';
+  CANVAS.style.height = cssH + 'px';
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); drawWheel(currentRotation); });
+
+// wheel visual parameters
+const radius = Math.min(CANVAS.width, CANVAS.height) / 2 * 0.9;
+const centerX = CANVAS.width / 2;
+const centerY = CANVAS.height / 2;
+
+// rotation state in degrees
+let currentRotation = 0; // degrees
+let spinning = false;
+
+// draw wheel with luxurious gold & black slices + labels
+function drawWheel(rotationDeg = 0) {
+  // clear
+  ctx.clearRect(0, 0, CANVAS.width, CANVAS.height);
+
+  const cx = CANVAS.width / 2;
+  const cy = CANVAS.height / 2;
+  const r = Math.min(CANVAS.width, CANVAS.height) / 2 - 10;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((rotationDeg * Math.PI) / 180);
+
+  const arc = 360 / SEGMENTS;
+  for (let i = 0; i < SEGMENTS; i++) {
+    const start = (i * arc) * Math.PI / 180;
+    const end = ((i+1) * arc) * Math.PI / 180;
+    // alternate gold and deep charcoal
+    const goldShade = `hsl(45 72% ${65 - (i%2?6:0)}%)`; // slight variation
+    const darkShade = `hsl(210 12% ${12 + (i%2?3:0)}%)`;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle = (i % 2 === 0) ? goldShade : darkShade;
+    ctx.fill();
+
+    // inner glossy overlay
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,r*0.75, start, end);
+    ctx.closePath();
+    ctx.fillStyle = (i % 2 === 0) ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)';
+    ctx.fill();
+
+    // text label
+    ctx.save();
+    ctx.rotate(start + (end - start) / 2);
+    ctx.fillStyle = (i % 2 === 0) ? '#2b1f00' : '#fff7ea';
+    ctx.font = `bold ${Math.round(r*0.08)}px "Playfair Display", serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText((i===0)?'✦ JACKPOT' : `Prize ${i}`, r*0.62, r*0.02);
+    ctx.restore();
+  }
+
+  // center hub (luxury)
+  ctx.beginPath();
+  ctx.arc(0,0,r*0.22,0,Math.PI*2);
+  ctx.fillStyle = '#fffaf2';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = 'rgba(160,120,30,0.9)';
+  ctx.stroke();
+
+  // small emblem text
+  ctx.fillStyle = '#3b2b12';
+  ctx.font = `bold ${Math.round(r*0.12)}px "Playfair Display", serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('UT', 0, r*0.04);
+
+  ctx.restore();
+
+  // draw outer rim shine
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 6, 0, Math.PI*2);
+  const rimGrad = ctx.createRadialGradient(cx, cy, r*0.6, cx, cy, r+6);
+  rimGrad.addColorStop(0, 'rgba(255,255,255,0.02)');
+  rimGrad.addColorStop(0.8, 'rgba(212,175,55,0.12)');
+  rimGrad.addColorStop(1, 'rgba(212,175,55,0.22)');
+  ctx.fillStyle = rimGrad;
+  ctx.fill();
+}
+
+// helper: get today string YYYY-MM-DD
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+// storage helpers for 5 spins/day
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return { date: todayStr(), used: 0, last: 0 };
+  try {
+    const parsed = JSON.parse(raw);
+    // if date differs, reset used
+    if(parsed.date !== todayStr()){
+      return { date: todayStr(), used: 0, last: parsed.last || 0 };
+    }
+    return parsed;
+  } catch(e) {
+    return { date: todayStr(), used: 0, last: 0 };
+  }
+}
+function saveData(obj){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
+
+function spinsLeftToday(){
+  const d = loadData();
+  return Math.max(0, MAX_SPINS_PER_DAY - (d.used || 0));
+}
+
+function updateUI(){
+  const d = loadData();
+  const left = Math.max(0, MAX_SPINS_PER_DAY - (d.used || 0));
+  SPINS_LEFT.textContent = left;
+  LAST_SPIN.textContent = d.last ? new Date(d.last).toLocaleString() : '—';
+  STATUS.textContent = left > 0 ? 'Ready' : 'No spins left';
+  if(left === 0){
+    // show countdown until start of next day (local)
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate()+1);
+    tomorrow.setHours(0,0,0,0);
+    const msLeft = tomorrow - now;
+    startCountdown(msLeft);
+  } else {
+    COUNTDOWN.textContent = '';
+    stopCountdown();
+  }
+}
+
+// countdown handling (when no spins left)
+let countdownTimer = null;
+function startCountdown(ms){
+  function tick(){
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate()+1);
+    tomorrow.setHours(0,0,0,0);
+    let rem = tomorrow - now;
+    if(rem <= 0){ updateUI(); return; }
+    const h = Math.floor(rem / 3600000);
+    const m = Math.floor((rem % 3600000) / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    COUNTDOWN.textContent = `Next spins in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  if(countdownTimer) return;
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+function stopCountdown(){
+  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; COUNTDOWN.textContent = ''; }
+}
+
+// spin animation (slow cinematic ~8000ms) with easing
+function spinWheel(){
+  if(spinning) return;
+  const data = loadData();
+  if(data.used >= MAX_SPINS_PER_DAY && data.date === todayStr()){
+    // no spins left
+    showModal('No spins left', 'You have used all spins today. Come again tomorrow.');
+    updateUI();
+    return;
+  }
+
+  // consume one spin (immediately increment used to avoid double clicks)
+  data.used = (data.used || 0) + 1;
+  data.last = Date.now();
+  data.date = todayStr();
+  saveData(data);
+  updateUI();
+
+  spinning = true;
+  STATUS.textContent = 'Spinning...';
+  SPIN_BTN.setAttribute('disabled', 'true');
+
+  // determine win by probability
+  const isWin = Math.random() < WIN_PROB;
+
+  // We will pick a sector: if win -> land near sector 0 (our special JACKPOT sector), else pick any other sector
+  const totalSegments = SEGMENTS;
+  const arc = 360 / totalSegments;
+
+  // sector indices: 0 reserved for jackpot (visual)
+  let targetSector;
+  if(isWin){
+    // pick random angle within sector 0 +/- a small jitter
+    targetSector = 0;
+  } else {
+    // pick a random non-zero sector
+    const nonZero = Math.floor(Math.random() * (totalSegments - 1)) + 1;
+    targetSector = nonZero;
+  }
+
+  // compute a random target angle within the sector bounds (so pointer lands inside that segment)
+  // pointer sits at top (0 deg). Our rotation is degrees applied to the wheel (clockwise).
+  // We want wheel rotation such that the center of targetSector aligns under pointer.
+  const sectorCenterDeg = targetSector * arc + arc/2; // degrees from wheel zero
+  // To align center under pointer (top), wheel rotation degrees must be: rotation % 360 = 360 - sectorCenterDeg
+  const stopAngleForSector = (360 - sectorCenterDeg) % 360;
+
+  // Choose number of full rotations (slow, cinematic)
+  const rotations = 6 + Math.floor(Math.random()*3); // 6..8 full turns (slow)
+  const randomJitter = (Math.random() * (arc/2)) - (arc/4); // +/- quarter arc
+  const finalAngle = rotations * 360 + stopAngleForSector + randomJitter;
+
+  // animate over duration with easeInOutQuart for smooth accel & decel
+  const duration = 8000 + Math.floor(Math.random()*1200); // 8-9.2s
+  const startTime = performance.now();
+  const startRotation = currentRotation;
+
+  function easeInOutQuart(x){
+    return x < 0.5 ? 8*x*x*x*x : 1 - Math.pow(-2*x+2,4)/2;
+  }
+
+  function frame(now){
+    const elapsed = now - startTime;
+    const t = Math.min(1, elapsed / duration);
+    const eased = easeInOutQuart(t);
+    currentRotation = startRotation + (finalAngle - startRotation) * eased;
+    drawWheel(currentRotation);
+    // subtle motion glow: when velocity high, add slight overlay (we omit complicated filter to keep crisp)
+    if(t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      // normalize rotation to 0..360
+      currentRotation = ((currentRotation % 360) + 360) % 360;
+      drawWheel(currentRotation);
+      spinning = false;
+      // after stop, show result
+      setTimeout(()=> {
+        if(isWin){
+          showModal('🎉 Congratulations!', 'You have won a special key.', true);
+          MODAL_KEY.textContent = WIN_KEY;
+          MODAL_KEY_WRAP.style.display = 'flex';
+        } else {
+          showModal('No Prize', 'Nothing Found — try again later.');
+          MODAL_KEY_WRAP.style.display = 'none';
+        }
+        SPIN_BTN.removeAttribute('disabled');
+        STATUS.textContent = 'Ready';
+        updateUI();
+      }, 350); // small pause for drama
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// Modal helpers
+function showModal(title, text, showKey=false){
+  MODAL_TITLE.textContent = title;
+  MODAL_TEXT.textContent = text;
+  MODAL.style.display = 'flex';
+  MODAL.setAttribute('aria-hidden','false');
+  MODAL_KEY_WRAP.style.display = showKey ? 'flex' : 'none';
+}
+function closeModal(){
+  MODAL.style.display = 'none';
+  MODAL.setAttribute('aria-hidden','true');
+}
+MODAL_CLOSE.addEventListener('click', closeModal);
+MODAL.addEventListener('click', (e)=>{ if(e.target === MODAL) closeModal(); });
+
+MODAL_COPY.addEventListener('click', async()=>{
+  const txt = MODAL_KEY.textContent || WIN_KEY;
+  try {
+    await navigator.clipboard.writeText(txt);
+    MODAL_COPY.textContent = 'Copied ✓';
+    setTimeout(()=> MODAL_COPY.textContent = 'Copy', 1500);
+  } catch(e){
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); MODAL_COPY.textContent = 'Copied ✓'; }
+    catch(e2){ MODAL_COPY.textContent = 'Copy failed'; }
+    ta.remove();
+    setTimeout(()=> MODAL_COPY.textContent = 'Copy', 1500);
+  }
+});
+
+// Attach spin button
+SPIN_BTN.addEventListener('click', () => {
+  if(spinning) return;
+  const left = spinsLeftToday();
+  if(left <= 0){
+    showModal('No spins left', 'You have used all spins today. Come back tomorrow for more.');
+    return;
+  }
+  spinWheel();
+});
+
+// spinsLeft helper
+function spinsLeftToday(){
+  const d = loadData();
+  return Math.max(0, MAX_SPINS_PER_DAY - (d.used || 0));
+}
+
+// update UI initially
+drawWheel(currentRotation);
+updateUI();
+
+// keep UI synced (in case user opens multiple tabs)
+window.addEventListener('storage', () => { updateUI(); });
+
+// export some functions for debugging (dev only)
+window._royalSpin = { drawWheel, spinWheel, loadData, saveData };
+
+</script>
+</body>
+</html>

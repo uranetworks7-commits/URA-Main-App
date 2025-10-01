@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🐶 Dog Warning</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('dog.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      max-width: 400px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 1em;
+      background: #00a8ff;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0097e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🐕 Attention!</h2>
+    <p>Our system is Highly Advanced You Never Crack It ( if You Are a Cracker,(Apni maa ki Chu*** mai daal Lena) . Please do not use modded APKs, crack tools, or hacking methods.</p>
+    <p>Misuse can lead to <strong>permanent account blocking</strong>.</p>
+    <button onclick="goBack()">🔙 Back to Menu</button>
+  </div>
+
+  <script>
+    function goBack() {
+      location.href = "main.html";
+    }
+  </script>
+</body>
+</html>

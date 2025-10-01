@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URA APP - Login</title>
+  
+  <style>
+    /*================================================
+    * -- GLOBAL STYLES, VARIABLES & FONTS --
+    *================================================*/
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary-color: #00eaff; /* Bright Cyan */
+      --secondary-color: #8c00ff; /* Purple */
+      --text-color-light: #e0e0e0;
+      --bg-color-main: #0d0d1a;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --input-bg: rgba(255, 255, 255, 0.08);
+      --input-border: rgba(255, 255, 255, 0.2);
+      --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.5);
+      --glow-border: 1px solid rgba(0, 234, 255, 0.2);
+      --gradient-brand: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      --transition-fast: 0.3s ease-in-out;
+      --transition-slow: 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    /* Base Body and Layout */
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-color-main);
+      color: var(--text-color-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated Background & Particles */
+    .bg-particles {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: -1;
+    }
+    .particle {
+        position: absolute;
+        background: radial-gradient(circle, var(--primary-color), transparent 50%);
+        border-radius: 50%;
+        opacity: 0;
+        animation: float-and-glow 15s infinite ease-in-out;
+    }
+    .particle:nth-child(1) { width: 40px; height: 40px; top: 10%; left: 15%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 30px; height: 30px; top: 70%; left: 80%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 50px; height: 50px; top: 40%; left: 50%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 35px; height: 35px; top: 25%; left: 70%; animation-delay: 6s; }
+    .particle:nth-child(5) { width: 45px; height: 45px; top: 85%; left: 30%; animation-delay: 8s; }
+    .particle:nth-child(6) { width: 25px; height: 25px; top: 55%; left: 5%; animation-delay: 10s; }
+    .particle:nth-child(7) { width: 60px; height: 60px; top: 5%; left: 60%; animation-delay: 12s; }
+    @keyframes float-and-glow {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.08; }
+        50% { transform: translate(var(--float-x), var(--float-y)) scale(1.2); opacity: 0.15; }
+    }
+    .bg-particles .particle:nth-child(1) { --float-x: 50px; --float-y: -30px; }
+    .bg-particles .particle:nth-child(2) { --float-x: -40px; --float-y: 20px; }
+    .bg-particles .particle:nth-child(3) { --float-x: 30px; --float-y: 50px; }
+    .bg-particles .particle:nth-child(4) { --float-x: -60px; --float-y: -20px; }
+    .bg-particles .particle:nth-child(5) { --float-x: 20px; --float-y: -40px; }
+    .bg-particles .particle:nth-child(6) { --float-x: 50px; --float-y: 30px; }
+    .bg-particles .particle:nth-child(7) { --float-x: -30px; --float-y: -50px; }
+
+
+    /*================================================
+    * -- MAIN APP CONTAINER & PANELS --
+    *================================================*/
+    .app-container {
+      position: relative;
+      width: 90%;
+      max-width: 450px;
+      height: 620px;
+      perspective: 1000px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    .app-container.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .form-switcher-container {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform var(--transition-slow);
+      position: absolute;
+    }
+    .app-container.create-account-active .form-switcher-container {
+      transform: rotateY(180deg);
+    }
+    .app-panel {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background: var(--card-bg);
+      backdrop-filter: blur(30px);
+      border: var(--glow-border);
+      border-radius: 20px;
+      padding: 40px 30px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-sizing: border-box;
+      animation: panel-glow 4s ease-in-out infinite alternate;
+    }
+    @keyframes panel-glow {
+      from { box-shadow: 0 0 10px rgba(0, 234, 255, 0.1), 0 0 20px rgba(140, 0, 255, 0.1), var(--shadow-soft); }
+      to { box-shadow: 0 0 20px rgba(0, 234, 255, 0.2), 0 0 40px rgba(140, 0, 255, 0.2), var(--shadow-soft); }
+    }
+    .app-panel.login-panel { transform: rotateY(0deg); }
+    .app-panel.create-account-panel { transform: rotateY(180deg); }
+    .panel-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .panel-content > * {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fade-in-up 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+    .login-panel .panel-content > *:nth-child(1) { animation-delay: 0.2s; }
+    .login-panel .panel-content > *:nth-child(2) { animation-delay: 0.3s; }
+    .login-panel .panel-content > *:nth-child(3) { animation-delay: 0.4s; }
+    .login-panel .panel-content > *:nth-child(4) { animation-delay: 0.5s; }
+    .login-panel .panel-content > *:nth-child(5) { animation-delay: 0.6s; }
+    
+    .create-account-panel .panel-content > *:nth-child(1) { animation-delay: 0.4s; }
+    .create-account-panel .panel-content > *:nth-child(2) { animation-delay: 0.5s; }
+    .create-account-panel .panel-content > *:nth-child(3) { animation-delay: 0.6s; }
+    .create-account-panel .panel-content > *:nth-child(4) { animation-delay: 0.7s; }
+    .create-account-panel .panel-content > *:nth-child(5) { animation-delay: 0.8s; }
+    @keyframes fade-in-up {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /*================================================
+    * -- TYPOGRAPHY & ELEMENTS --
+    *================================================*/
+    .app-header h2 {
+      font-size: clamp(2.2em, 5vw, 3em);
+      font-weight: 500;
+      margin-bottom: 5px;
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+    .app-header p {
+      font-size: 1em;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 30px;
+      font-weight: 300;
+    }
+    .system-notice {
+      font-size: clamp(0.8em, 2vw, 0.9em);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      text-align: left;
+      border-left: 4px solid var(--primary-color);
+    }
+    /*================================================
+    * -- FORM ELEMENTS --
+    *================================================*/
+    .form-group {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 16px 20px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      color: var(--text-color-light);
+      font-size: 1em;
+      transition: all var(--transition-fast);
+      box-sizing: border-box;
+      outline: none;
+    }
+    .form-group input::placeholder { color: rgba(255, 255, 255, 0.4); }
+    .form-group input:focus {
+      background-color: rgba(255, 255, 255, 0.12);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 234, 255, 0.2);
+    }
+    /*================================================
+    * -- BUTTONS --
+    *================================================*/
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-primary {
+      background: var(--gradient-brand);
+      color: white;
+      box-shadow: 0 5px 20px rgba(0, 234, 255, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 234, 255, 0.4);
+    }
+    .btn-primary.loading {
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: #333;
+    }
+    .btn-link {
+      background: transparent;
+      color: var(--primary-color);
+      font-size: 0.9em;
+      text-decoration: none;
+      font-weight: 400;
+      opacity: 0.8;
+      padding: 10px 0;
+    }
+    .btn-link:hover { opacity: 1; }
+    /* Login button state transition */
+    .btn-primary .loading-state,
+    .btn-primary .button-text {
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    .btn-primary.loading .button-text {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    .btn-primary .loading-state {
+        position: absolute;
+        opacity: 0;
+        transform: translateY(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-primary.loading .loading-state {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /*================================================
+    * -- TOAST NOTIFICATIONS --
+    *================================================*/
+    .toast-notification {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background-color: #ffc107;
+      color: #333;
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .toast-notification.show {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    /*================================================
+    * -- SPLASH & LOADER ANIMATIONS --
+    *================================================*/
+    .splash-container {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-color-main);
+        z-index: 100;
+        opacity: 1;
+        transition: opacity 0.8s ease-in-out;
+    }
+    .splash-container.hidden { opacity: 0; pointer-events: none; }
+    
+    .logo-pulse {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(0, 234, 255, 0.5)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(0, 234, 255, 0.8)); }
+    }
+    .loading-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      margin: 0 8px;
+      animation: wave-dots 1.2s infinite ease-in-out;
+      box-shadow: 0 0 15px rgba(0, 234, 255, 0.5);
+    }
+    .dot:nth-child(1) { animation-delay: -0.9s; }
+    .dot:nth-child(2) { animation-delay: -0.6s; }
+    .dot:nth-child(3) { animation-delay: -0.3s; }
+    @keyframes wave-dots {
+      0%, 40%, 100% { transform: translateY(0); }
+      20% { transform: translateY(-10px); }
+    }
+    .loader-text {
+      font-size: 1.1em;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 15px;
+    }
+    .typing-effect::after {
+        content: '_';
+        font-weight: 500;
+        animation: blink-caret 0.75s step-end infinite;
+    }
+    @keyframes blink-caret { 50% { opacity: 0; } }
+    
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="bg-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+</div>
+
+<img src="index.png" alt="URA Logo" class="logo-pulse" style="position: absolute; top: 30px; left: 30px; width: 70px; z-index: 100;">
+
+<div id="toastBox" class="toast-notification"></div>
+
+<div id="splashScreen" class="splash-container">
+  <div class="app-header">
+      <h2>URA-NETWORKS 2.0</h2>
+      <p>The Future of Connectivity</p>
+  </div>
+  <div class="loading-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <div class="loader-text" id="splashText"></div>
+</div>
+
+<div id="permissionNotice" class="splash-container hidden">
+  <div class="app-panel" style="max-width: 480px; max-height: 90vh;">
+    <div class="app-header">
+        <h2>Important Notice</h2>
+    </div>
+    <div style="overflow-y: auto; max-height: 300px; margin-bottom: 20px; padding-right: 15px;">
+      <p style="font-size: 0.9em; text-align: justify; line-height: 1.6;">
+        This application is owned and managed by **VLF-TeC** and *(Terminal.io)* Team.
+        <br><br>
+        We require **storage, device, and internet access** permissions to ensure optimal functionality.
+        <br><br>
+        Our app is fully secured and protected.
+        <br><br>
+        Please review and adhere to our policies governing the use of this app.
+      </p>
+    </div>
+    <button class="btn btn-primary" id="agreePermission">I Agree ✅</button>
+  </div>
+</div>
+
+<div class="app-container hidden">
+  <div class="form-switcher-container">
+    
+    <div class="app-panel login-panel">
+      <div class="panel-content">
+        <div class="app-header">
+          <h2>URA APP 2.0</h2>
+          <p>Login to your account</p>
+        </div>
+        <div class="system-notice">
+          <p>System 2.0: Username and Email must be in small letters.</p>
+        </div>
+        <div class="form-group">
+          <input type="text" id="username" placeholder="Username" />
+        </div>
+        <div class="form-group">
+          <input type="email" id="api" placeholder="Gmail" />
+        </div>
+        <button class="btn btn-primary" id="loginBtn">
+          <span class="button-text">Login</span>
+          <div class="loading-state">
+              <span class="loader-spinner"></span>
+              <span class="loading-text">Logging in...</span>
+          </div>
+        </button>
+        <button class="btn btn-link" onclick="toggleForm('create')">ᕼᗩᐯE ᑎOT ᗩᑕᑕOᑌᑎT</button>
+        <button class="btn btn-link" onclick="location.href='imp.html'">𝙸𝙼𝙿𝙾𝚁𝚃𝙰𝙽𝚃 𝙸𝙽𝙵𝙾𝚁𝙼𝙰𝚃𝙸𝙾𝙽</button>
+      </div>
+    </div>
+    
+    <div class="app-panel create-account-panel">
+      <div class="panel-content">
+        <div class="app-header">
+          <h2>Create Account</h2>
+          <p>New users start here</p>
+        </div>
+        <div class="system-notice">
+          <p>Your details must be verified by an admin. This may take 24-48 hours.</p>
+        </div>
+        <div class="form-group">
+          <input type="text" placeholder="Desired Username" />
+        </div>
+        <div class="form-group">
+          <input type="email" placeholder="Your Gmail ID" />
+        </div>
+        <button class="btn btn-primary" onclick="location.href='create_account.html'">Create Account</button>
+        <button class="btn btn-link" onclick="toggleForm('login')">Back to Login</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+  const backend = "https://script.google.com/macros/s/AKfycbyiroBKxMWB6HRHEAPCG9IBw21knjrPoaOp3HOSdBdWULmHVUestJDymf573BCBIUQC/exec";
+  
+  const splashTextElement = document.getElementById("splashText");
+  const splashContainer = document.getElementById("splashScreen");
+  const permissionContainer = document.getElementById("permissionNotice");
+  const appContainer = document.querySelector(".app-container");
+  const loginBtn = document.getElementById('loginBtn');
+
+  // The simplified loading sequence
+  const loadingSequence = [
+    "Status: Connected to Server 🌐",
+    "Security Scanning...",
+    "System check complete."
+  ];
+
+  function showToast(msg, duration = 4000) {
+    const box = document.getElementById("toastBox");
+    box.innerText = `📢 ${msg}`;
+    box.classList.add("show");
+    setTimeout(() => box.classList.remove("show"), duration);
+  }
+
+  function runLoadingSequence(index = 0) {
+    if (index < loadingSequence.length) {
+      splashTextElement.textContent = loadingSequence[index];
+      // Move to the next message after a delay
+      setTimeout(() => {
+        runLoadingSequence(index + 1);
+      }, 1500); // 1.5 seconds delay per message
+    } else {
+      // Transition to the main app container after the sequence ends
+      setTimeout(() => {
+        splashContainer.classList.add("hidden");
+        appContainer.classList.remove("hidden");
+        // A small delay to ensure the element is displayed before starting the fade-in
+        setTimeout(() => appContainer.classList.add("visible"), 50);
+      }, 500);
+    }
+  }
+
+  function handleLoginClick() {
+    loginBtn.classList.add('loading');
+    loginBtn.disabled = true;
+    
+    setTimeout(() => {
+        login();
+    }, 1000); 
+  }
+
+  function resetLoginButton() {
+    loginBtn.classList.remove('loading');
+    loginBtn.disabled = false;
+  }
+
+  function login() {
+    const u = document.getElementById("username").value.trim().toLowerCase();
+    const a = document.getElementById("api").value.trim().toLowerCase();
+    
+    if (!u || !a) {
+        resetLoginButton();
+        return showToast("Please fill all fields.");
+    }
+    
+    fetch(`${backend}?action=login&username=${u}&api=${a}`)
+      .then(res => res.text())
+      .then(data => {
+        resetLoginButton();
+        
+        if (data === "Success") {
+          localStorage.setItem("username", u);
+          localStorage.setItem("api", a);
+          location.href = "main.html";
+        } else if (data === "Pending") {
+          showToast("Your account is pending approval.");
+        } else if (data === "Blocked") {
+          showToast("Access denied. You are blocked.");
+        } else if (data === "Deleted") {
+          showToast("Your account was deleted.");
+        } else {
+          showToast("Account not found. Please create a new account.");
+        }
+      })
+      .catch(() => {
+        resetLoginButton();
+        showToast("Server error. Try again later.");
+      });
+  }
+
+  function toggleForm(formType) {
+      const appContainer = document.querySelector('.app-container');
+      if (formType === 'create') {
+          appContainer.classList.add('create-account-active');
+      } else {
+          appContainer.classList.remove('create-account-active');
+      }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loginBtn.addEventListener('click', handleLoginClick);
+    const u = localStorage.getItem("username");
+    const a = localStorage.getItem("api");
+    if (u) document.getElementById("username").value = u;
+    if (a) document.getElementById("api").value = a;
+    
+    if (!localStorage.getItem("permissionAccepted")) {
+      permissionContainer.classList.remove("hidden");
+    } else {
+      runLoadingSequence();
+    }
+  });
+
+  document.getElementById("agreePermission").addEventListener("click", () => {
+    localStorage.setItem("permissionAccepted", "true");
+    permissionContainer.classList.add("hidden");
+    splashContainer.classList.remove("hidden");
+    runLoadingSequence();
+  });
+</script>
+</body>
+</html>
