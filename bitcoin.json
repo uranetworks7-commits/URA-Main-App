@@ -1,0 +1,16 @@
+{
+  "users": {
+    "john_doe": {
+      "username": "john_doe",
+      "balance": 1250.75
+    },
+    "jane_doe": {
+      "username": "jane_doe",
+      "balance": 985.50
+    },
+    "user1234": {
+      "username": "user1234",
+      "balance": 1000.00
+    }
+  }
+}

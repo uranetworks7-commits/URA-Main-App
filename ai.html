@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>URA AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: 
+        linear-gradient(135deg, rgba(0, 4, 40, 0.85), rgba(0, 78, 146, 0.85)),
+        url('ai.png') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+    h2 { text-align: center; margin-top: 30px; }
+
+    #loginBox, #chatBox {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+    }
+    input, textarea {
+      background: #f0f0f0;
+      color: #222;
+    }
+    button {
+      background: #00a8ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00c3ff;
+    }
+    button:hover { background: #0097e6; }
+
+    #chatBox {
+      display: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 10px;
+    }
+
+    .msg {
+      background: #1e1e1e;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 12px;
+    }
+    .user { background: #003366; text-align: right; }
+    .ai { background: #2c3e50; text-align: left; }
+
+    #inputBox {
+      display: flex;
+      gap: 10px;
+    }
+    #userMsg {
+      flex: 1;
+      padding: 14px;
+      height: 60px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: none;
+      resize: none;
+    }
+    #inputBox button {
+      width: 60px;
+      padding: 0;
+      font-size: 22px;
+      border-radius: 12px;
+    }
+
+    #alertBox {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffc107;
+      color: black;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      z-index: 9999;
+      box-shadow: 0 0 15px #000;
+    }
+  </style>
+</head>
+<body>
+
+<div id="alertBox">System Alert 👋</div>
+
+<div id="loginBox">
+  <h2>🤖 Welcome to URA AI</h2>
+  <input type="text" id="username" placeholder="Your Username">
+  <input type="email" id="email" placeholder="Your Email">
+  <button onclick="startChat()">Start Chat</button>
+</div>
+
+<div id="chatBox">
+  <div id="messages"></div>
+  <div id="inputBox">
+    <textarea id="userMsg" placeholder="Type your message..."></textarea>
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  const scriptURL = "https://script.google.com/macros/s/AKfycbw07JHRk1SKbcFtEHK8288dsautr3ALOBvy6ujewDW7JFZWi7eIJ9SP5q8cSCVNTsu2/exec";
+  const abuseWords = ["fuck", "bitch", "chutiya", "mc", "bc", "gandu", "madarchod", "fake"];
+
+  const savedName = localStorage.getItem("username");
+  const savedEmail = localStorage.getItem("email");
+  const blockedUntil = localStorage.getItem("blockedUntil");
+
+  // Auto-fill and lock inputs if data exists
+  if (savedName) {
+    document.getElementById("username").value = savedName;
+    document.getElementById("username").setAttribute("readonly", true);
+  }
+  if (savedEmail) {
+    document.getElementById("email").value = savedEmail;
+    document.getElementById("email").setAttribute("readonly", true);
+  }
+
+  // Auto-start chat if user is saved and not blocked
+  if (savedName && savedEmail && (!blockedUntil || new Date() > new Date(blockedUntil))) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("chatBox").style.display = "flex";
+  }
+
+  function showAlert(msg) {
+    const alert = document.getElementById("alertBox");
+    alert.innerText = `System Alert 👋: ${msg}`;
+    alert.style.display = "block";
+    setTimeout(() => alert.style.display = "none", 4000);
+  }
+
+  function startChat() {
+    const name = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    if (!name || !email) return showAlert("Please fill all fields.");
+
+    localStorage.setItem("username", name);
+    localStorage.setItem("email", email);
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("chatBox").style.display = "flex";
+  }
+
+  function sendMessage() {
+    const msg = document.getElementById("userMsg").value.trim();
+    const chatBox = document.getElementById("messages");
+    if (!msg) return;
+
+    const lower = msg.toLowerCase();
+    if (abuseWords.some(word => lower.includes(word))) {
+      showAlert("Please talk respectfully. I’m here to help.");
+      addMessage("user", msg);
+      addMessage("ai", "⚠️ Please talk respectfully. I’m here to solve your problem.");
+      return;
+    }
+
+    addMessage("user", msg);
+    const reply = getReply(msg);
+    setTimeout(() => {
+      addMessage("ai", reply);
+      logChat(msg, reply);
+    }, 500);
+
+    document.getElementById("userMsg").value = "";
+  }
+
+  function addMessage(type, text) {
+    const div = document.createElement("div");
+    div.className = `msg ${type}`;
+    div.innerText = text;
+    document.getElementById("messages").appendChild(div);
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+  }
+
+  function getReply(msg) {
+    const text = msg.toLowerCase();
+    const now = new Date();
+
+    if (text.includes("hi") || text.includes("hello")) return "Hello 👋 How can I help you?";
+    if (text.includes("good morning")) return "Good morning ☀️ Hope you have a great day!";
+    if (text.includes("good night")) return "Good night 🌙 Sweet dreams!";
+    if (text.includes("how are you")) return "I'm URA AI 🤖 and I'm doing great!";
+    if (text.includes("bye")) return "Goodbye 👋 See you again!";
+    if (text.includes("date")) return "📅 Today is " + now.toLocaleDateString();
+    if (text.includes("time")) return "⏰ Current time is " + now.toLocaleTimeString();
+    if (text.includes("login")) return "To login, use your Username and Gmail (API ID). Approved users can access the app.";
+    if (text.includes("create account")) return "To create a free account, click 'Create Free Account' on the login page and submit your details.";
+    if (text.includes("who created you")) return "I was created by Utkarsh and Yash 🧠💻";
+    if (text.includes("event") || text.includes("spin")) return "The URA Event section includes a spin wheel reward system with 33% win chance.";
+    if (text.includes("help")) return "You can report issues in the Help & Report section or ask me anything related to the app.";
+    if (text.includes("feature") || text.includes("ura app")) return "URA App 2.0 includes: 🎡 Event Spin, 🤖 AI Chat, 🛠 Report System, 🐶 Warning, 📡 Transmission, 📺 Live News and more.";
+    if (text.includes("select animal")) return "🐶 🐱 🐯 🦁 🐵 Pick your favorite!";
+    if (text.includes("choose number")) return "🔢 Choose: 7️⃣, 13️⃣, 42️⃣, 99️⃣";
+
+    try {
+      let result = eval(text);
+      if (!isNaN(result)) return `🧮 Result is: ${result}`;
+    } catch (e) {}
+
+    return "🤖 I'm URA AI. I didn’t understand that, but I’m learning!";
+  }
+
+  function logChat(userMsg, aiReply) {
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+
+    fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: username,
+        email: email,
+        userMsg: userMsg,
+        aiReply: aiReply,
+        time: new Date().toLocaleString()
+      })
+    });
+  }
+</script>
+</body>
+</html>

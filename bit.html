@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URA App Loader</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #0a0f2c;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Loader container */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Dots container */
+    .dots {
+      display: flex;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 15px;
+      height: 15px;
+      background: #00d9ff;
+      border-radius: 50%;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(0); opacity: 0.5; }
+      to { transform: translateY(-15px); opacity: 1; }
+    }
+
+    .loading-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #00d9ff;
+      letter-spacing: 2px;
+    }
+
+    iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="loading-text">Loading</div>
+  </div>
+
+  <!-- Full App -->
+  <iframe id="appFrame" src="https://urabitcoins.netlify.app"></iframe>
+
+  <script>
+    setTimeout(() => {
+      document.getElementById("loader").style.display = "none";
+      document.getElementById("appFrame").style.display = "block";
+    }, 3000);
+  </script>
+</body>
+</html>

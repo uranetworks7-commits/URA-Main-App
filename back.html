@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Back Navigation</title>
+  <script>
+    window.onload = () => {
+      window.addEventListener("popstate", function () {
+        // Just let it go back normally
+      });
+
+      // Push a fake state so we can intercept the first back press
+      history.pushState(null, null, location.href);
+
+      // When the back button is pressed
+      window.onpopstate = function () {
+        // Actually go back one step
+        history.back();
+      };
+    };
+  </script>
+</head>
+<body>
+</body>
+</html>
